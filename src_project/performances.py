@@ -45,7 +45,8 @@ def model_performances_report_generation(accuracy, precision, recall, class_repo
 
 def model_performances_multiclass(y_true: np.ndarray, y_pred: np.ndarray, scenario: str):
     all_labels = np.arange(y_pred.shape[1])
-
+    samples = y_true.shape[0]
+    labels = y_true.shape[1]
     y_true = to_class_indices(y_true)
     y_pred = to_class_indices(y_pred)
 
@@ -56,9 +57,9 @@ def model_performances_multiclass(y_true: np.ndarray, y_pred: np.ndarray, scenar
     class_report = classification_report(y_true, y_pred, labels=all_labels, zero_division=0)
 
     print(f"\n----{scenario} PERFORMANCES----")
-    print("Accuracy:", accuracy)
-    print("Precision", precision)
-    print("Recall", recall)
+    print(f"Accuracy: {accuracy:.2f}")
+    print(f"Precision: {precision:.2f}")
+    print(f"Recall: {recall:.2f}")
 
     print("\nClassification Report:")
     print(class_report)
@@ -69,7 +70,7 @@ def model_performances_multiclass(y_true: np.ndarray, y_pred: np.ndarray, scenar
     disp.plot(ax=ax, cmap='Blues', include_values=True, xticks_rotation=90)
 
     # Improve readability
-    plt.title(f"{scenario} Confusion Matrix - 51 Classes", fontsize=20, pad=20)
+    plt.title(f"{scenario} Confusion Matrix - {labels} Classes {samples} Samples", fontsize=20, pad=20)
     plt.xlabel("Predicted Label", fontsize=14)
     plt.ylabel("True Label", fontsize=14)
     plt.xticks(fontsize=10)
