@@ -37,7 +37,7 @@ def model_train(model: RandomForestClassifier, x: np.ndarray, y: np.ndarray, res
     print("\n----MODEL TRAINING STARTED----")
     print("Training model...")
     train_time = time.time()
-    rf.fit(x, y)
+    model.fit(x, y)
     print(f"Training time: {time.time() - train_time:.1f} s")
     print("----TRAINING COMPLETED----\n\n")
     # --- Predict probabilities ---
@@ -87,8 +87,8 @@ if __name__ == "__main__":
     shape_fixer(y_train, y_test)
 
     # uncomment this part of the code if you want to use a smaller dataset
-    x_train, y_train = subset_generation(x_train, y_train, 500, RESULTS_DIR, scenario="train")
-    x_test, y_test = subset_generation(x_test, y_test, 500, RESULTS_DIR, scenario="test")
+    x_train, y_train = subset_generation(x_train, y_train, len(x_train), RESULTS_DIR, scenario="train")
+    x_test, y_test = subset_generation(x_test, y_test, len(x_test), RESULTS_DIR, scenario="test")
 
     # remove unlabeled samples
     x_train, y_train = subset_analysis(x_train, y_train, "TRAINING")
