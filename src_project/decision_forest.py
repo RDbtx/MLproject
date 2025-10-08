@@ -1,28 +1,18 @@
 from performances import *
-from setup_dataset import *
+import time
 from sklearn.ensemble import RandomForestClassifier
+from setup_dataset import feature_loading
+from utils import subset_analysis, subset_generation, shape_fixer
+import joblib
+
 
 # =========================================================
 # --- Main testing function ---
 # =========================================================
 
-def model_test(x, y, subset=100000,):
-    results_dir = "../Results/decision_forest/"
-    os.makedirs(results_dir, exist_ok=True)
-
-    subset = min(subset, len(x))
-    idx = np.random.choice(len(x), subset, replace=False)
-    x_small = x[idx]
-    y_small = y[idx]
-
-    #saving labels
-    np.save(results_dir + "x_small.npy", x_small)
-    np.save(results_dir + "y_small.npy", y_small)
-
-    subset_analysis(x_small, y_small)
-
+def RandomForest_model_generation() -> RandomForestClassifier:
     rf = RandomForestClassifier(
-        n_estimators=600,  # good balance for 1M samples
+        n_estimators=600,
         max_depth=14,
         min_samples_split=20,
         min_samples_leaf=10,
@@ -32,64 +22,81 @@ def model_test(x, y, subset=100000,):
         random_state=42,
     )
 
+    return rf
+
+
+def save_model(model: RandomForestClassifier):
+    models_dir = "../Models/"
+    os.makedirs(models_dir, exist_ok=True)
+    joblib.dump(model, models_dir + "RF_malware_classifier.joblib")
+
+
+def model_train(model: RandomForestClassifier, x: np.ndarray, y: np.ndarray, results_dir: str):
+    os.makedirs(results_dir, exist_ok=True)
+
     print("\n----MODEL TRAINING STARTED----")
     print("Training model...")
-    t0 = time.time()
-    rf.fit(x_small, y_small)
-    print(f"Training time: {time.time() - t0:.1f} s")
+    train_time = time.time()
+    rf.fit(x, y)
+    print(f"Training time: {time.time() - train_time:.1f} s")
     print("----TRAINING COMPLETED----\n\n")
     # --- Predict probabilities ---
-    proba_output = rf.predict_proba(x_small)
-
-
-
-    if isinstance(proba_output, list):  # multi-output
-        proba = []
-        aucs = []
-        for k, pk in enumerate(proba_output):
-            classes_k = rf.classes_[k]
-            pos_idx = list(classes_k).index(1) if 1 in classes_k else (1 if pk.shape[1] > 1 else 0)
-            proba.append(pk[:, pos_idx])
-            if len(np.unique(y_small[:, k])) == 2:
-                aucs.append(roc_auc_score(y_small[:, k], pk[:, pos_idx]))
-        proba = np.column_stack(proba)
-        if aucs:
-            print(f"Mean ROC-AUC across {len(aucs)} labels: {np.mean(aucs):.4f}")
-    else:
-        classes = rf.classes_
-        pos_idx = list(classes).index(1) if 1 in classes else 1
-        proba = proba_output[:, pos_idx]
-        if len(np.unique(y_small)) == 2:
-            auc = roc_auc_score(y_small, proba)
-            print(f"AUC: {auc:.4f}")
-
-    # --- Plots ---
+    train_predictions = model.predict(x)
 
     # saves probabilities
-    np.save(results_dir + "proba.npy", proba)
+    np.save(results_dir + "train_prediction.npy", train_predictions)
 
-    print("\n\n📊 Plotting ROC curve and confusion matrix...")
-    plot_roc(y_small, proba)
-    plot_conf_matrix(y_small, proba, threshold=0.1)
+    accuracy, precision, recall, class_report, cm = model_performances_multiclass(y, train_predictions, "TRAINING")
+    model_performances_report_generation(accuracy, precision, recall, class_report, cm, "TRAINING", results_dir)
 
-    evaluate_model(y_small, proba, threshold=0.1)
-    return rf, proba
+    return model, train_predictions
+
+
+def model_test(model: RandomForestClassifier, x: np.ndarray, y: np.ndarray, results_dir: str):
+    print("\n----MODEL TESTING----")
+    print("Testing model...")
+    test_time = time.time()
+    test_predictions = model.predict(x)
+    print(f"Testing time: {time.time() - test_time:.1f} s")
+    print("----TESTING COMPLETED----\n\n")
+
+    np.save(results_dir + "test_prediction.npy", test_predictions)
+
+    accuracy, precision, recall, class_report, cm = model_performances_multiclass(y, test_predictions, "TESTING")
+    model_performances_report_generation(accuracy, precision, recall, class_report, cm, "TESTING", results_dir)
+
+    return test_predictions
 
 
 if __name__ == "__main__":
     DATASET_DIR = "../Dataset"
     EXTRACTED_DATA_DIR = "../Extracted"
+    RESULTS_DIR = "../Results/decision_forest/"
 
-
-    x_train, y_train, x_test, y_test, x_challenge, y_challenge = feature_loading(EXTRACTED_DATA_DIR, ["x_train.npy", "y_train.npy"])
-
-    print("----DATASET ANALYSIS----")
+    x_train, y_train, x_test, y_test, x_challenge, y_challenge = feature_loading(EXTRACTED_DATA_DIR,
+                                                                                 ["x_train.npy", "y_train.npy",
+                                                                                  "x_test.npy", "y_test.npy"])
+    print("\n----DATASET ANALYSIS----")
     print("x_train shape: ", x_train.shape)
     print("y_train shape: ", y_train.shape)
     print("x_test shape: ", x_test.shape)
     print("y_test shape: ", y_test.shape)
-    print("x_challenge shape: ", x_challenge.shape)
-    print("y_challenge shape: ", y_challenge.shape)
 
+    # this section is used to reshape the test set since seems like that the test set has one additional label
+    # that is not present in training.
+    shape_fixer(y_train, y_test)
 
-    rf_test, return_proba_test = model_test(x_train, y_train, 50000)
+    # uncomment this part of the code if you want to use a smaller dataset
+    x_train, y_train = subset_generation(x_train, y_train, 500, RESULTS_DIR)
+    x_test, y_test = subset_generation(x_test, y_test, 500, RESULTS_DIR)
+
+    # remove unlabeled samples
+    x_train, y_train = subset_analysis(x_train, y_train, "TRAINING")
+
+    rf = RandomForest_model_generation()
+    rf, train_predictions = model_train(rf, x_train, y_train, RESULTS_DIR)
+    save_model(rf)
+
+    # remove unlabeled samples
+    x_test, y_test = subset_analysis(x_test, y_test, "TESTING")
+    test_predictions = model_test(rf, x_test, y_test, RESULTS_DIR)

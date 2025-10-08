@@ -1,8 +1,4 @@
-import thrember
-import os
-import shutil
-import time
-import numpy as np
+from utils import *
 
 
 def file_mover(origin: str, destination: str) -> None:
@@ -74,7 +70,7 @@ def feature_memorization(dataset_path: str, extracted_data_dir: str) -> None:
 
 
 def feature_loading(data_file_folder: str, desired_datasets: list) -> np.ndarray:
-    print("Loading data...")
+    print("\nLoading data...")
     x_train = np.ndarray(shape=(0, 0))
     y_train = np.ndarray(shape=(0, 0))
     x_test = np.ndarray(shape=(0, 0))
@@ -82,6 +78,7 @@ def feature_loading(data_file_folder: str, desired_datasets: list) -> np.ndarray
     x_challenge = np.ndarray(shape=(0, 0))
     y_challenge = np.ndarray(shape=(0, 0))
 
+    loading_time = time.time()
     for elem in os.listdir(data_file_folder):
         if elem.endswith(".npy") and elem in desired_datasets:
             if "x_challenge" in elem:
@@ -100,6 +97,7 @@ def feature_loading(data_file_folder: str, desired_datasets: list) -> np.ndarray
                 "NO CORRECT FILE HAS BEEN FOUND!"
         else:
             pass
+    print(f"Loading time: {time.time() - loading_time:.1f} s")
     print("Features loaded inside variables!")
     return x_train, y_train, x_test, y_test, x_challenge, y_challenge
 

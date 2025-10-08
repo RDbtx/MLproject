@@ -1,179 +1,88 @@
-from sklearn.metrics import roc_auc_score, roc_curve, confusion_matrix, ConfusionMatrixDisplay, precision_score, \
-    recall_score, f1_score
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, accuracy_score, classification_report, \
+    precision_score, recall_score
 import matplotlib.pyplot as plt
 import numpy as np
-import math
+import os
+
+RF_RESULT_DIR = "../Results/decision_forest/"
 
 
-# =========================================================
-# --- Helper plot functions ---
-# =========================================================
-def subset_analysis(x_set, y_set) -> None:
-    print("\n\n----SUBSET ANALYSIS----")
-    print(f"subset samples and features: {x_set.shape}")
-    print(f"subet samples and labels:    {y_set.shape}")
-
-    num_labels = y_set.shape[1]
-    print(f"\nThe dataset has {num_labels} labels (columns).")
-    for i in range(num_labels):
-        samples_per_label = int(y_set[:, i].sum())
-        print(f"Label {i + 1}: {samples_per_label}  samples")
-    print("\n")
+def to_class_indices(y: np.ndarray) -> np.ndarray:
+    y = np.asarray(y)
+    if y.ndim == 2 and y.shape[1] > 1:
+        return y.argmax(axis=1)
+    return y
 
 
-def evaluate_model(y_true, y_proba, threshold: float):
-    """
-        Compute precision, recall, and F1 for binary or multi-label problems.
-        """
-    y_true = np.asarray(y_true)
-    y_pred = (np.asarray(y_proba) >= threshold).astype(int)
+def model_performances_report_generation(accuracy, precision, recall, class_report, conf_matrix, scenario: str,
+                                         ouput_dir: str):
+    report_dir = ouput_dir + "/reports/"
+    os.makedirs(report_dir, exist_ok=True)
 
-    if y_true.ndim == 1:
-        # ---- Single-label ----
-        prec = precision_score(y_true, y_pred)
-        rec = recall_score(y_true, y_pred)
-        f1 = f1_score(y_true, y_pred)
-        print(f"Precision: {prec:.4f}")
-        print(f"Recall:    {rec:.4f}")
-        print(f"F1-score:  {f1:.4f}")
-    else:
-        # ---- Multi-label ----
-        prec_micro = precision_score(y_true, y_pred, average="micro", zero_division=0)
-        rec_micro = recall_score(y_true, y_pred, average="micro", zero_division=0)
-        f1_micro = f1_score(y_true, y_pred, average="micro", zero_division=0)
+    print("Performance Report generation...")
+    report_str = []
+    report_str.append(f"\n----{scenario} PERFORMANCES----")
+    report_str.append(f"Accuracy: {accuracy:.4f}")
+    report_str.append(f"Precision: {precision:.4f}")
+    report_str.append(f"Recall: {recall:.4f}")
+    report_str.append("\nClassification Report:\n")
+    report_str.append(class_report)
 
-        prec_macro = precision_score(y_true, y_pred, average="macro", zero_division=0)
-        rec_macro = recall_score(y_true, y_pred, average="macro", zero_division=0)
-        f1_macro = f1_score(y_true, y_pred, average="macro", zero_division=0)
+    # Confusion matrix
+    report_str.append("\nConfusion Matrix:\n")
+    report_str.append(np.array2string(conf_matrix))
 
-        print("=== Micro-averaged metrics (overall) ===")
-        print(f"Precision: {prec_micro:.4f}")
-        print(f"Recall:    {rec_micro:.4f}")
-        print(f"F1-score:  {f1_micro:.4f}")
-        print("\n=== Macro-averaged metrics (per-label average) ===")
-        print(f"Precision: {prec_macro:.4f}")
-        print(f"Recall:    {rec_macro:.4f}")
-        print(f"F1-score:  {f1_macro:.4f}")
+    # Combine all text
+    output = "\n".join(report_str)
+
+    # Optionally save to a file
+    file_path = report_dir + scenario + "_performances_report.txt"
+    if file_path:
+        with open(file_path, "w") as f:
+            f.write(output)
+        print(f"Results saved to {file_path}")
 
 
-def plot_roc(y_true, proba, label_names=None):
-    y_true = np.asarray(y_true)
-    proba = np.asarray(proba)
+def model_performances_multiclass(y_true: np.ndarray, y_pred: np.ndarray, scenario: str):
+    all_labels = np.arange(y_pred.shape[1])
 
-    if y_true.ndim == 1:
-        # --- Single-label ---
-        fpr, tpr, _ = roc_curve(y_true, proba)
-        auc = roc_auc_score(y_true, proba)
-        plt.figure(figsize=(7, 6))
-        plt.plot(fpr, tpr, label=f"ROC (AUC={auc:.4f})")
-        plt.plot([0, 1], [0, 1], linestyle="--", color="gray")
-        plt.xlabel("False Positive Rate");
-        plt.ylabel("True Positive Rate")
-        plt.title("ROC curve")
-        plt.legend()
-        plt.tight_layout()
-        plt.show()
-        return
+    y_true = to_class_indices(y_true)
+    y_pred = to_class_indices(y_pred)
 
-    # --- Multi-label (plot ALL labels) ---
-    L = y_true.shape[1]
-    plt.figure(figsize=(9, 8))
-    aucs = []
-    for k in range(L):
-        yk, pk = y_true[:, k], proba[:, k]
-        # skip labels with a single class in ground truth
-        if len(np.unique(yk)) < 2:
-            continue
-        fpr, tpr, _ = roc_curve(yk, pk)
-        auc = roc_auc_score(yk, pk)
-        aucs.append(auc)
-        name = label_names[k] if (label_names and k < len(label_names)) else f"label {k}"
-        plt.plot(fpr, tpr, linewidth=1.0, alpha=0.8, label=f"{name} (AUC={auc:.3f})")
+    precision = precision_score(y_true=y_true, y_pred=y_pred, labels=all_labels, average="macro", zero_division=0)
+    recall = recall_score(y_true=y_true, y_pred=y_pred, labels=all_labels, average="macro", zero_division=0)
+    accuracy = accuracy_score(y_true, y_pred)
+    cm = confusion_matrix(y_true, y_pred, labels=all_labels)
+    class_report = classification_report(y_true, y_pred, labels=all_labels, zero_division=0)
 
-    # Micro-average
-    fpr_micro, tpr_micro, _ = roc_curve(y_true.ravel(), proba.ravel())
-    auc_micro = roc_auc_score(y_true.ravel(), proba.ravel())
-    plt.plot(fpr_micro, tpr_micro, linestyle="--", color="black", linewidth=2,
-             label=f"micro (AUC={auc_micro:.3f})")
+    print(f"\n----{scenario} PERFORMANCES----")
+    print("Accuracy:", accuracy)
+    print("Precision", precision)
+    print("Recall", recall)
 
-    plt.plot([0, 1], [0, 1], linestyle=":", color="gray")
-    plt.xlabel("False Positive Rate");
-    plt.ylabel("True Positive Rate")
-    plt.title("ROC curves (all labels)")
-    # Put legend outside to fit all entries
-    plt.legend(bbox_to_anchor=(1.02, 1), loc="upper left", borderaxespad=0.)
+    print("\nClassification Report:")
+    print(class_report)
+
+    fig, ax = plt.subplots(figsize=(28, 28))
+
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=all_labels)
+    disp.plot(ax=ax, cmap='Blues', include_values=True, xticks_rotation=90)
+
+    # Improve readability
+    plt.title(f"{scenario} Confusion Matrix - 51 Classes", fontsize=20, pad=20)
+    plt.xlabel("Predicted Label", fontsize=14)
+    plt.ylabel("True Label", fontsize=14)
+    plt.xticks(fontsize=10)
+    plt.yticks(fontsize=10)
     plt.tight_layout()
     plt.show()
 
-    if aucs:
-        print(f"Mean per-label AUC (plotted): {np.mean(aucs):.4f}")
+    return accuracy, precision, recall, class_report, cm
 
+# print("Loading data...")
+# y_small = np.load(DIR + "y_small.npy")
+# predictions = np.load(DIR + "train_prediction.npy")
+# print("Data loaded.")
 
-def plot_conf_matrix(y_true, proba, threshold=0.2, label_index=None, label_names=None, cols=6):
-    """
-    - Single-label: standard CM.
-    - Multi-label:
-        * If label_index is not None -> CM for that label.
-        * Else -> grid of per-label CMs (ALL labels).
-    """
-    y_true = np.asarray(y_true)
-    proba = np.asarray(proba)
-
-    if y_true.ndim == 1:
-        # --- Single-label ---
-        y_pred = (proba >= threshold).astype(int)
-        cm = confusion_matrix(y_true, y_pred, labels=[0, 1])
-        fig, ax = plt.subplots(1, 1, figsize=(5, 4))
-        ConfusionMatrixDisplay(cm, display_labels=[0, 1]).plot(cmap="Blues", ax=ax, values_format=".0f")
-        ax.set_title(f"Confusion Matrix (thr={threshold})")
-        plt.tight_layout();
-        plt.show()
-        return
-
-    # --- Multi-label ---
-    L = y_true.shape[1]
-
-    if label_index is not None:
-        # One specific label
-        yk, pk = y_true[:, label_index], proba[:, label_index]
-        y_pred = (pk >= threshold).astype(int)
-        cm = confusion_matrix(yk, y_pred, labels=[0, 1])
-        fig, ax = plt.subplots(1, 1, figsize=(5, 4))
-        name = (label_names[label_index] if label_names and label_index < len(label_names)
-                else f"label {label_index}")
-        ConfusionMatrixDisplay(cm, display_labels=[0, 1]).plot(cmap="Blues", ax=ax, values_format=".0f")
-        ax.set_title(f"CM — {name} (thr={threshold})")
-        plt.tight_layout();
-        plt.show()
-        return
-
-    # Grid for ALL labels
-    rows = math.ceil(L / cols)
-    fig, axes = plt.subplots(rows, cols, figsize=(cols * 3.4, rows * 3.4))
-    axes = np.atleast_2d(axes).reshape(rows, cols)
-
-    k = 0
-    for r in range(rows):
-        for c in range(cols):
-            ax = axes[r, c]
-            if k < L:
-                yk, pk = y_true[:, k], proba[:, k]
-                # handle degenerate case with one class present
-                if len(np.unique(yk)) < 2:
-                    ax.axis("off")
-                    ax.set_title(
-                        (label_names[k] if label_names and k < len(label_names) else f"label {k}") + " (skipped)")
-                else:
-                    y_pred = (pk >= threshold).astype(int)
-                    cm = confusion_matrix(yk, y_pred, labels=[0, 1])
-                    name = label_names[k] if (label_names and k < len(label_names)) else f"label {k}"
-                    disp = ConfusionMatrixDisplay(cm, display_labels=[0, 1])
-                    disp.plot(cmap="Blues", ax=ax, values_format=".0f", colorbar=False)
-                    ax.set_title(f"{name}")
-            else:
-                ax.axis("off")
-            k += 1
-
-    plt.suptitle(f"Confusion Matrices — All Labels (thr={threshold})", y=1.02)
-    plt.tight_layout()
-    plt.show()
+# accuracy, class_report, cm = model_performances_multiclass(y_small, predictions, scenario="TRAINING")
+# model_performances_report_generation(accuracy, class_report, cm, "TRAINING")
