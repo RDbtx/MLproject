@@ -5,13 +5,13 @@ import os
 import shutil
 
 
-def subset_generation(x: np.ndarray, y: np.ndarray, subset_len: int, results_dir: str):
+def subset_generation(x: np.ndarray, y: np.ndarray, subset_len: int, results_dir: str, scenario: str):
     subset = min(subset_len, len(x))
     idx = np.random.choice(len(x), subset, replace=False)
     x_small = x[idx]
     y_small = y[idx]
-    np.save(results_dir + "x_small.npy", x_small)
-    np.save(results_dir + "y_small.npy", y_small)
+    np.save(results_dir + f"x_{scenario}_small.npy", x_small)
+    np.save(results_dir + f"y_{scenario}_small.npy", y_small)
     return x_small, y_small
 
 

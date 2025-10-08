@@ -76,14 +76,7 @@ def model_performances_multiclass(y_true: np.ndarray, y_pred: np.ndarray, scenar
     plt.xticks(fontsize=10)
     plt.yticks(fontsize=10)
     plt.tight_layout()
+    plt.savefig(os.path.join(RF_RESULT_DIR, scenario + "_conf_matrix.png"))
     plt.show()
 
     return accuracy, precision, recall, class_report, cm
-
-# print("Loading data...")
-# y_small = np.load(DIR + "y_small.npy")
-# predictions = np.load(DIR + "train_prediction.npy")
-# print("Data loaded.")
-
-# accuracy, class_report, cm = model_performances_multiclass(y_small, predictions, scenario="TRAINING")
-# model_performances_report_generation(accuracy, class_report, cm, "TRAINING")
