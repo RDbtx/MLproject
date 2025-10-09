@@ -6,8 +6,9 @@ import shutil
 
 
 def subset_generation(x: np.ndarray, y: np.ndarray, subset_len: int, results_dir: str, scenario: str):
-    """subset_generation allows to create a subset of our dataset in order to test the model with
-    fewer sample for a faster data processing.
+    """subset_generation processes the dataset removing unlabeled data. It
+    can also be used to generate a smaller subset of the dataset by modifying the
+    subset_len parameter.
 
     inputs:
     x: np.ndarray containing the samples and their features
@@ -22,8 +23,10 @@ def subset_generation(x: np.ndarray, y: np.ndarray, subset_len: int, results_dir
     idx = np.random.choice(len(x), subset, replace=False)
     x_small = x[idx]
     y_small = y[idx]
-    np.save(results_dir + f"x_{scenario}_small.npy", x_small)
-    np.save(results_dir + f"y_{scenario}_small.npy", y_small)
+
+    # remove unlabeled samples
+    x_small, y_small = subset_analysis(x, y, results_dir, scenario)
+
     return x_small, y_small
 
 
@@ -46,7 +49,7 @@ def shape_fixer(labels_train: np.ndarray, labels_test: np.ndarray) -> None:
         print(f"y_test shape: {labels_test.shape}")
 
 
-def subset_analysis(x_set: np.ndarray, y_set: np.ndarray, scenario: str):
+def subset_analysis(x_set: np.ndarray, y_set: np.ndarray, results_dir: str, scenario: str):
     """This functions filters the datasets and removes all the unlabeled samples.
        The subset analysis function was initially created just to have an idea of
        how many samples, features and labels where inside a given dataset and
@@ -86,5 +89,8 @@ def subset_analysis(x_set: np.ndarray, y_set: np.ndarray, scenario: str):
         samples += samples_per_label
 
     print(f"\nTotal labeled samples counted: {samples}")
+
+    np.save(results_dir + f"x_{scenario}_small.npy", x_labeled)
+    np.save(results_dir + f"y_{scenario}_small.npy", y_labeled)
 
     return x_labeled, y_labeled

@@ -107,6 +107,7 @@ if __name__ == "__main__":
     x_train, y_train, x_test, y_test, x_challenge, y_challenge = feature_loading(EXTRACTED_DATA_DIR,
                                                                                  ["x_train.npy", "y_train.npy",
                                                                                   "x_test.npy", "y_test.npy"])
+
     print("\n----DATASET ANALYSIS----")
     print("x_train shape: ", x_train.shape)
     print("y_train shape: ", y_train.shape)
@@ -114,16 +115,12 @@ if __name__ == "__main__":
     print("y_test shape: ", y_test.shape)
 
     # this section is used to reshape the test set since seems like that the test set has one additional label
-    # that is not present in the training set.
+    # (which probably contains outliers) that is not present in the training set.
     shape_fixer(y_train, y_test)
 
     # modify the third variable of the subset_generation function if you want to use a smaller dataset
-    x_train, y_train = subset_generation(x_train, y_train, len(x_train), RESULTS_DIR, scenario="train")
-    x_test, y_test = subset_generation(x_test, y_test, len(x_test), RESULTS_DIR, scenario="test")
-
-    # remove unlabeled samples
-    x_train, y_train = subset_analysis(x_train, y_train, "TRAINING")
-    x_test, y_test = subset_analysis(x_test, y_test, "TESTING")
+    x_train, y_train = subset_generation(x_train, y_train, len(x_train), RESULTS_DIR, "TRAINING")
+    x_test, y_test = subset_generation(x_test, y_test, len(x_test), RESULTS_DIR, "TESTING")
 
     # model training
     rf, train_predictions = model_train(rf, x_train, y_train, RESULTS_DIR)
