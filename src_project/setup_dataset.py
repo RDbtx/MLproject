@@ -50,9 +50,10 @@ def feature_memorization(dataset_path: str, extracted_data_dir: str) -> None:
     them as .npy files for future processing, saving precious extraction time since
     thrember.read_vectorized_features takes quite some time.
 
-    :param dataset_path:
-    :param extracted_data_dir:
-    :return:
+    input:
+    dataset_path: Path to the dataset folder
+    extracted_data_dir: Path where to the store the data
+
     """
     os.makedirs(extracted_data_dir, exist_ok=True)
 
@@ -70,6 +71,16 @@ def feature_memorization(dataset_path: str, extracted_data_dir: str) -> None:
 
 
 def feature_loading(data_file_folder: str, desired_datasets: list) -> np.ndarray:
+    """This function loads inside some variables the features extracted from the dataset that are
+    stored in memory under the data_file_folder path as .npy files.
+
+    input:
+    data_file_folder: Path to the folder where the .npy files are located
+    desired_datasets: List of datasets to load
+
+    output:
+    x_train, y_train, x_test, y_test, x_challenge, y_challenge: variables containing the extracted features"""
+
     print("\nLoading data...")
     x_train = np.ndarray(shape=(0, 0))
     y_train = np.ndarray(shape=(0, 0))

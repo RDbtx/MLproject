@@ -8,6 +8,15 @@ RF_RESULT_DIR = "../Results/decision_forest/"
 
 
 def to_class_indices(y: np.ndarray) -> np.ndarray:
+    """This utility function is used to convert sample,label np.ndarray
+    into class indices for confusion matrix computation.
+
+    inputs:
+    y: np.ndarray containing the samples and their labels
+
+    outputs:
+    y: contains the 1D class indices
+    """
     y = np.asarray(y)
     if y.ndim == 2 and y.shape[1] > 1:
         return y.argmax(axis=1)
@@ -15,8 +24,19 @@ def to_class_indices(y: np.ndarray) -> np.ndarray:
 
 
 def model_performances_report_generation(accuracy, precision, recall, class_report, conf_matrix, scenario: str,
-                                         ouput_dir: str):
-    report_dir = ouput_dir + "/reports/"
+                                         output_dir: str):
+    """This function is used to generate the performance report.
+
+    inputs:
+    accuracy: Accuracy of the model
+    precision: Precision of the model
+    recall: Recall of the model
+    class_report: Class report of the model
+    conf_matrix: Confusion matrix of the model
+    scenario: Name of the scenario, it could be TRAINING or TESTING
+    output_dir: Path to the output directory
+    """
+    report_dir = output_dir + "/reports/"
     os.makedirs(report_dir, exist_ok=True)
 
     print("Performance Report generation...")
@@ -44,6 +64,22 @@ def model_performances_report_generation(accuracy, precision, recall, class_repo
 
 
 def model_performances_multiclass(y_true: np.ndarray, y_pred: np.ndarray, scenario: str):
+    """This function is used to compute the performances of our model. It computes
+       model accuracy, precision, recall, class report and confusion matrix for the given scenario
+       which could be TRAINING or TESTING.
+
+       inputs:
+       y_true: np.ndarray containing the subset samples, and their true labels
+       y_pred: np.ndarray containing the subset samples, and their predicted labels
+       scenario: Name of the scenario, it could be TRAINING or TESTING
+
+       outputs:
+       accuracy: Accuracy of the model
+       precision: Precision of the model
+       recall: Recall of the model
+       class_report: Class report of the model
+       conf_matrix: Confusion matrix of the model
+    """
     all_labels = np.arange(y_pred.shape[1])
     samples = y_true.shape[0]
     labels = y_true.shape[1]

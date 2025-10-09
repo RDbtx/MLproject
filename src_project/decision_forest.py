@@ -5,33 +5,54 @@ from setup_dataset import feature_loading
 from utils import subset_analysis, subset_generation, shape_fixer
 import joblib
 
+# =========================================================
+# --- Model declaration ---
+# =========================================================
+
+rf = RandomForestClassifier(
+    n_estimators=600,
+    max_depth=14,
+    min_samples_split=20,
+    min_samples_leaf=10,
+    max_features="sqrt",
+    bootstrap=True,
+    n_jobs=-1,
+    random_state=42,
+)
+
 
 # =========================================================
 # --- Main testing function ---
 # =========================================================
 
-def RandomForest_model_generation() -> RandomForestClassifier:
-    rf = RandomForestClassifier(
-        n_estimators=600,
-        max_depth=14,
-        min_samples_split=20,
-        min_samples_leaf=10,
-        max_features="sqrt",
-        bootstrap=True,
-        n_jobs=-1,
-        random_state=42,
-    )
 
-    return rf
+def save_model(model: RandomForestClassifier, model_name: str) -> None:
+    """This function is used to save the trained model as a joblib file
+    inside the /Models directory
 
+    inputs:
+    model: trained model
+    model_name: name of the model to be saved
 
-def save_model(model: RandomForestClassifier):
+    """
     models_dir = "../Models/"
     os.makedirs(models_dir, exist_ok=True)
-    joblib.dump(model, models_dir + "RF_malware_classifier.joblib")
+    joblib.dump(model, models_dir + f"{model_name}_malware_classifier.joblib")
 
 
 def model_train(model: RandomForestClassifier, x: np.ndarray, y: np.ndarray, results_dir: str):
+    """This function is used to train the model evaluate the training performances.
+
+    inputs:
+    model: the model to be trained
+    x: np.ndarray containing the training set with samples and features
+    y: np.ndarray containing the training set with samples and labels
+    results_dir: directory to save the training results
+
+    outputs:
+    model: the trained model
+    train_predictions:  np.ndarray containing the predictions generated during training
+    """
     os.makedirs(results_dir, exist_ok=True)
 
     print("\n----MODEL TRAINING STARTED----")
@@ -53,6 +74,17 @@ def model_train(model: RandomForestClassifier, x: np.ndarray, y: np.ndarray, res
 
 
 def model_test(model: RandomForestClassifier, x: np.ndarray, y: np.ndarray, results_dir: str):
+    """This function is used to train the model evaluate the training performances.
+
+        inputs:
+        model: the model to be trained
+        x: np.ndarray containing the training set with samples and features
+        y: np.ndarray containing the training set with samples and labels
+        results_dir: directory to save the testing results
+
+        outputs:
+        test_predictions: np.ndarray containing the predictions generated during testing
+        """
     print("\n----MODEL TESTING----")
     print("Testing model...")
     test_time = time.time()
@@ -93,7 +125,6 @@ if __name__ == "__main__":
     # remove unlabeled samples
     x_train, y_train = subset_analysis(x_train, y_train, "TRAINING")
 
-    rf = RandomForest_model_generation()
     rf, train_predictions = model_train(rf, x_train, y_train, RESULTS_DIR)
     save_model(rf)
 

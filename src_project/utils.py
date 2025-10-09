@@ -6,6 +6,18 @@ import shutil
 
 
 def subset_generation(x: np.ndarray, y: np.ndarray, subset_len: int, results_dir: str, scenario: str):
+    """subset_generation allows to create a subset of our dataset in order to test the model with
+    fewer sample for a faster data processing.
+
+    inputs:
+    x: np.ndarray containing the samples and their features
+    y: np.ndarray containing the samples and their labels
+    subset_len: is an integer that specifies how many samples we want to keep
+    results_dir: Path to the directory where to store the results
+    scenario: name of the scenario, could be TRAINING or TESTING
+
+    outputs:
+    x_small, y_small: np.ndarray containing the subset samples, their features and their labels"""
     subset = min(subset_len, len(x))
     idx = np.random.choice(len(x), subset, replace=False)
     x_small = x[idx]
@@ -16,6 +28,16 @@ def subset_generation(x: np.ndarray, y: np.ndarray, subset_len: int, results_dir
 
 
 def shape_fixer(labels_train: np.ndarray, labels_test: np.ndarray) -> None:
+    """Shape_fixer function checks whether the number of feature inside
+       the training set is the same as the number of features in the test set.
+       If this is not the case, it changes the shape of the test set to contain only
+       samples that the model was trained on.
+
+       inputs:
+       labels_train: np.ndarray containing the training labels
+       labels_test: np.ndarray containing the test labels
+       """
+
     if labels_train.shape[1] != labels_test.shape[1]:
         print("\nWARNING: y_train and y_test have different number of classes")
         print("correcting y_train and y_test shape...")
@@ -26,7 +48,7 @@ def shape_fixer(labels_train: np.ndarray, labels_test: np.ndarray) -> None:
 
 def subset_analysis(x_set: np.ndarray, y_set: np.ndarray, scenario: str):
     """This functions filters the datasets and removes all the unlabeled samples.
-       The subset analysis function was initally created just to have an idea of
+       The subset analysis function was initially created just to have an idea of
        how many samples, features and labels where inside a given dataset and
        how many sample belonged to each label. But after noticing that the total
        number of samples was much higher than the total number of samples with labels,
@@ -35,7 +57,7 @@ def subset_analysis(x_set: np.ndarray, y_set: np.ndarray, scenario: str):
        inputs:
        x_set: np.ndarray (n_samples, n_features)
        y_set: np.ndarray (n_samples, n_labels)
-       scenario: str  (TRAINING if applied to the training set, TEST if applied to the test set ecc..)
+       scenario: str containing TRAINING if applied to the training set, TEST if applied to the test set.
        """
     print(f"\n----{scenario} SUBSET ANALYSIS----")
 
