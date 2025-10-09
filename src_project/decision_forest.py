@@ -114,13 +114,13 @@ if __name__ == "__main__":
     print("x_test shape: ", x_test.shape)
     print("y_test shape: ", y_test.shape)
 
-    # this section is used to reshape the test set since seems like that the test set has one additional label
-    # (which probably contains outliers) that is not present in the training set.
-    shape_fixer(y_train, y_test)
-
     # modify the third variable of the subset_generation function if you want to use a smaller dataset
     x_train, y_train = subset_generation(x_train, y_train, len(x_train), RESULTS_DIR, "TRAINING")
     x_test, y_test = subset_generation(x_test, y_test, len(x_test), RESULTS_DIR, "TESTING")
+
+    # this section is used to reshape the test set since seems like that the test set has one additional label
+    # (which probably contains outliers) that is not present in the training set.
+    y_train, y_test = shape_fixer(y_train, y_test)
 
     # model training
     rf, train_predictions = model_train(rf, x_train, y_train, RESULTS_DIR)

@@ -25,12 +25,12 @@ def subset_generation(x: np.ndarray, y: np.ndarray, subset_len: int, results_dir
     y_small = y[idx]
 
     # remove unlabeled samples
-    x_small, y_small = subset_analysis(x, y, results_dir, scenario)
+    x_small, y_small = subset_analysis(x_small, y_small, results_dir, scenario)
 
     return x_small, y_small
 
 
-def shape_fixer(labels_train: np.ndarray, labels_test: np.ndarray) -> None:
+def shape_fixer(labels_train: np.ndarray, labels_test: np.ndarray):
     """Shape_fixer function checks whether the number of feature inside
        the training set is the same as the number of features in the test set.
        If this is not the case, it changes the shape of the test set to contain only
@@ -47,6 +47,8 @@ def shape_fixer(labels_train: np.ndarray, labels_test: np.ndarray) -> None:
         labels_test = labels_test[:, :labels_train.shape[1]]
         print(f"y_train shape: {labels_train.shape}")
         print(f"y_test shape: {labels_test.shape}")
+
+    return labels_train, labels_test
 
 
 def subset_analysis(x_set: np.ndarray, y_set: np.ndarray, results_dir: str, scenario: str):
@@ -90,6 +92,7 @@ def subset_analysis(x_set: np.ndarray, y_set: np.ndarray, results_dir: str, scen
 
     print(f"\nTotal labeled samples counted: {samples}")
 
+    # save dataset
     np.save(results_dir + f"x_{scenario}_small.npy", x_labeled)
     np.save(results_dir + f"y_{scenario}_small.npy", y_labeled)
 
