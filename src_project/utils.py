@@ -3,6 +3,7 @@ import time
 import thrember
 import os
 import shutil
+import json
 
 
 def subset_generation(x: np.ndarray, y: np.ndarray, subset_len: int, results_dir: str, scenario: str):
@@ -30,25 +31,41 @@ def subset_generation(x: np.ndarray, y: np.ndarray, subset_len: int, results_dir
     return x_small, y_small
 
 
-def shape_fixer(labels_train: np.ndarray, labels_test: np.ndarray):
+def shape_fixer(y_train: np.ndarray, x_test: np.ndarray, y_test: np.ndarray):
     """Shape_fixer function checks whether the number of feature inside
        the training set is the same as the number of features in the test set.
        If this is not the case, it changes the shape of the test set to contain only
        samples that the model was trained on.
 
        inputs:
-       labels_train: np.ndarray containing the training labels
-       labels_test: np.ndarray containing the test labels
+       y_train: np.ndarray containing the training labels
+       x_test: np.ndarray containing the test sample and features
+       y_test: np.ndarray containing the test labels
+
+       outputs:
+       x_test: np.ndarray containing the corrected test sample and features
+       y_test: np.ndarray containing the corrected tests samples and labels
        """
 
-    if labels_train.shape[1] != labels_test.shape[1]:
+    if y_train.shape[1] != y_test.shape[1]:
         print("\nWARNING: y_train and y_test have different number of classes")
+        print(f"y_train shape: {y_train.shape}")
+        print(f"y_test shape: {y_test.shape}")
         print("correcting y_train and y_test shape...")
-        labels_test = labels_test[:, :labels_train.shape[1]]
-        print(f"y_train shape: {labels_train.shape}")
-        print(f"y_test shape: {labels_test.shape}")
 
-    return labels_train, labels_test
+        label_to_remove = y_test.shape[1] - 1
+        mask_extra_label = y_test[:, label_to_remove] == 1
+        n_extra = np.sum(mask_extra_label)
+
+        x_test = x_test[~mask_extra_label]
+        y_test = y_test[~mask_extra_label, :]
+        y_test = np.delete(y_test, label_to_remove, axis=1)
+
+        print(f"extra label samples: {n_extra}")
+        print(f"corrected y_test shape: {y_test.shape}")
+        print(f"corrected x_test shape: {x_test.shape}")
+
+    return x_test, y_test
 
 
 def subset_analysis(x_set: np.ndarray, y_set: np.ndarray, results_dir: str, scenario: str):
@@ -62,14 +79,12 @@ def subset_analysis(x_set: np.ndarray, y_set: np.ndarray, results_dir: str, scen
        inputs:
        x_set: np.ndarray (n_samples, n_features)
        y_set: np.ndarray (n_samples, n_labels)
+       results_dir: Path to the directory where to store the results
        scenario: str containing TRAINING if applied to the training set, TEST if applied to the test set.
        """
     print(f"\n----{scenario} SUBSET ANALYSIS----")
 
-    if np.isnan(y_set).any():
-        labeled_mask = ~np.isnan(y_set).all(axis=1)
-    else:
-        labeled_mask = (y_set.sum(axis=1) > 0)
+    labeled_mask = (y_set > 0).any(axis=1)
 
     x_labeled = x_set[labeled_mask]
     y_labeled = y_set[labeled_mask]
