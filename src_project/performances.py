@@ -48,19 +48,15 @@ def model_performances_report_generation(accuracy, precision, recall, class_repo
     report_str.append("\nClassification Report:\n")
     report_str.append(class_report)
 
-    # Confusion matrix
     report_str.append("\nConfusion Matrix:\n")
     report_str.append(np.array2string(conf_matrix))
 
-    # Combine all text
     output = "\n".join(report_str)
 
-    # Optionally save to a file
     file_path = report_dir + scenario + "_performances_report.txt"
-    if file_path:
-        with open(file_path, "w") as f:
-            f.write(output)
-        print(f"Results saved to {file_path}")
+    with open(file_path, "w") as f:
+        f.write(output)
+    print(f"Results saved to {file_path}")
 
 
 def model_performances_multiclass(y_true: np.ndarray, y_pred: np.ndarray, scenario: str):
@@ -104,8 +100,6 @@ def model_performances_multiclass(y_true: np.ndarray, y_pred: np.ndarray, scenar
 
     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=all_labels)
     disp.plot(ax=ax, cmap='Blues', include_values=True, xticks_rotation=90)
-
-    # Improve readability
     plt.title(f"{scenario} Confusion Matrix - {labels} Classes {samples} Samples", fontsize=20, pad=20)
     plt.xlabel("Predicted Label", fontsize=14)
     plt.ylabel("True Label", fontsize=14)

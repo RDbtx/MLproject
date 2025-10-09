@@ -5,9 +5,9 @@ from setup_dataset import feature_loading
 from utils import subset_analysis, subset_generation, shape_fixer
 import joblib
 
-# =========================================================
+# =====================================
 # --- Model declaration ---
-# =========================================================
+# =====================================
 
 rf = RandomForestClassifier(
     n_estimators=600,
@@ -21,9 +21,9 @@ rf = RandomForestClassifier(
 )
 
 
-# =========================================================
-# --- Main testing function ---
-# =========================================================
+# =====================================
+# --- Main utility functions ---
+# =====================================
 
 
 def save_model(model: RandomForestClassifier, model_name: str) -> None:
@@ -61,10 +61,9 @@ def model_train(model: RandomForestClassifier, x: np.ndarray, y: np.ndarray, res
     model.fit(x, y)
     print(f"Training time: {time.time() - train_time:.1f} s")
     print("----TRAINING COMPLETED----\n\n")
-    # --- Predict probabilities ---
+
     train_predictions = model.predict(x)
 
-    # saves probabilities
     np.save(results_dir + "train_prediction.npy", train_predictions)
 
     accuracy, precision, recall, class_report, cm = model_performances_multiclass(y, train_predictions, "TRAINING")
@@ -115,19 +114,20 @@ if __name__ == "__main__":
     print("y_test shape: ", y_test.shape)
 
     # this section is used to reshape the test set since seems like that the test set has one additional label
-    # that is not present in training.
+    # that is not present in the training set.
     shape_fixer(y_train, y_test)
 
-    # uncomment this part of the code if you want to use a smaller dataset
+    # modify the third variable of the subset_generation function if you want to use a smaller dataset
     x_train, y_train = subset_generation(x_train, y_train, len(x_train), RESULTS_DIR, scenario="train")
     x_test, y_test = subset_generation(x_test, y_test, len(x_test), RESULTS_DIR, scenario="test")
 
     # remove unlabeled samples
     x_train, y_train = subset_analysis(x_train, y_train, "TRAINING")
-
-    rf, train_predictions = model_train(rf, x_train, y_train, RESULTS_DIR)
-    save_model(rf)
-
-    # remove unlabeled samples
     x_test, y_test = subset_analysis(x_test, y_test, "TESTING")
+
+    # model training
+    rf, train_predictions = model_train(rf, x_train, y_train, RESULTS_DIR)
+    save_model(rf, "RF")
+
+    # model test
     test_predictions = model_test(rf, x_test, y_test, RESULTS_DIR)

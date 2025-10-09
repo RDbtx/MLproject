@@ -121,7 +121,6 @@ def feature_extraction(dataset_path: str) -> None:
     dataset_path: path to the dataset folder
     """
     if os.path.exists(dataset_path):
-        # Dataset vectorization. From raw .jsonl features to vectorized and labeled data
         thrember.create_vectorized_features(dataset_path, label_type="behavior")
     else:
         print("Dataset folder does not exist")
@@ -130,5 +129,5 @@ def feature_extraction(dataset_path: str) -> None:
 if __name__ == "__main__":
     DATASET_DIR = "../Dataset"
     EXTRACTED_DATA_DIR = "../Extracted"
-    # download_dataset(DATASET_DIR)
+    download_dataset(DATASET_DIR)
     feature_memorization(DATASET_DIR, EXTRACTED_DATA_DIR)
