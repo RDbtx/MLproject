@@ -67,7 +67,7 @@ def feature_memorization(dataset_path: str, extracted_data_dir: str) -> None:
     np.save(extracted_data_dir + "/x_challenge.npy", x_challenge)
     np.save(extracted_data_dir + "/y_challenge.npy", y_challenge)
     print("Dataset loaded under /Extracted folder!")
-    print(f"Loading time: {time.time() - t_loading:.1f} s")
+    print(f"Loading time: {(time.time() - t_loading):.1f} s")
 
 
 def feature_loading(data_file_folder: str, desired_datasets: list) -> np.ndarray:
@@ -108,7 +108,7 @@ def feature_loading(data_file_folder: str, desired_datasets: list) -> np.ndarray
                 "NO CORRECT FILE HAS BEEN FOUND!"
         else:
             pass
-    print(f"Loading time: {time.time() - loading_time:.1f} s")
+    print(f"Loading time: {(time.time() - loading_time):.1f} s")
     print("Features loaded inside variables!")
     return x_train, y_train, x_test, y_test, x_challenge, y_challenge
 

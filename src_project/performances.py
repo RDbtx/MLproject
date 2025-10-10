@@ -59,7 +59,7 @@ def model_performances_report_generation(accuracy, precision, recall, class_repo
     print(f"Results saved to {file_path}")
 
 
-def model_performances_multiclass(y_true: np.ndarray, y_pred: np.ndarray, scenario: str):
+def model_performances_multiclass(labels_names: list, y_true: np.ndarray, y_pred: np.ndarray, scenario: str):
     """This function is used to compute the performances of our model. It computes
        model accuracy, precision, recall, class report and confusion matrix for the given scenario
        which could be TRAINING or TESTING.
@@ -76,7 +76,7 @@ def model_performances_multiclass(y_true: np.ndarray, y_pred: np.ndarray, scenar
        class_report: Class report of the model
        conf_matrix: Confusion matrix of the model
     """
-    all_labels = np.arange(y_pred.shape[1])
+    all_labels = np.arange(y_true.shape[1])
     samples = y_true.shape[0]
     labels = y_true.shape[1]
     y_true = to_class_indices(y_true)
@@ -86,7 +86,7 @@ def model_performances_multiclass(y_true: np.ndarray, y_pred: np.ndarray, scenar
     recall = recall_score(y_true=y_true, y_pred=y_pred, labels=all_labels, average="macro", zero_division=0)
     accuracy = accuracy_score(y_true, y_pred)
     cm = confusion_matrix(y_true, y_pred, labels=all_labels)
-    class_report = classification_report(y_true, y_pred, labels=all_labels, zero_division=0)
+    class_report = classification_report(y_true, y_pred, labels=all_labels, target_names=labels_names, zero_division=0)
 
     print(f"\n----{scenario} PERFORMANCES----")
     print(f"Accuracy: {accuracy:.2f}")
@@ -98,7 +98,7 @@ def model_performances_multiclass(y_true: np.ndarray, y_pred: np.ndarray, scenar
 
     fig, ax = plt.subplots(figsize=(28, 28))
 
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=all_labels)
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels_names)
     disp.plot(ax=ax, cmap='Blues', include_values=True, xticks_rotation=90)
     plt.title(f"{scenario} Confusion Matrix - {labels} Classes {samples} Samples", fontsize=20, pad=20)
     plt.xlabel("Predicted Label", fontsize=14)

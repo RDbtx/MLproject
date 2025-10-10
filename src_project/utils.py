@@ -4,6 +4,31 @@ import thrember
 import os
 import shutil
 import json
+import numpy as np
+
+
+def align_labels_columns(y_test: np.ndarray, test_labels: list, train_labels: list):
+    """
+    Pads and reorders y_test so that its columns match train_labels exactly.
+    Adds all-zero columns for missing classes and reorders existing ones.
+    Returns the aligned y_test and the new label list (== train_labels).
+    """
+    # Create a map of current label → column index
+    test_idx_of = {label: i for i, label in enumerate(test_labels)}
+
+    # Build aligned matrix
+    aligned_cols = []
+    for label in train_labels:
+        if label in test_idx_of:
+            aligned_cols.append(y_test[:, test_idx_of[label]])  # existing column
+        else:
+            aligned_cols.append(np.zeros((y_test.shape[0],), dtype=y_test.dtype))  # new zero column
+
+    # Stack all columns in the correct order
+    y_test_aligned = np.stack(aligned_cols, axis=1)
+    test_labels_aligned = train_labels[:]  # identical order and names
+
+    return y_test_aligned, test_labels_aligned
 
 
 def subset_generation(x: np.ndarray, y: np.ndarray, subset_len: int, results_dir: str, scenario: str):
@@ -26,49 +51,69 @@ def subset_generation(x: np.ndarray, y: np.ndarray, subset_len: int, results_dir
     y_small = y[idx]
 
     # remove unlabeled samples
-    x_small, y_small = subset_analysis(x_small, y_small, results_dir, scenario)
+    labels_names, x_small, y_small = subset_labeling(x_small, y_small, results_dir, scenario)
 
-    return x_small, y_small
-
-
-def shape_fixer(y_train: np.ndarray, x_test: np.ndarray, y_test: np.ndarray):
-    """Shape_fixer function checks whether the number of feature inside
-       the training set is the same as the number of features in the test set.
-       If this is not the case, it changes the shape of the test set to contain only
-       samples that the model was trained on.
-
-       inputs:
-       y_train: np.ndarray containing the training labels
-       x_test: np.ndarray containing the test sample and features
-       y_test: np.ndarray containing the test labels
-
-       outputs:
-       x_test: np.ndarray containing the corrected test sample and features
-       y_test: np.ndarray containing the corrected tests samples and labels
-       """
-
-    if y_train.shape[1] != y_test.shape[1]:
-        print("\nWARNING: y_train and y_test have different number of classes")
-        print(f"y_train shape: {y_train.shape}")
-        print(f"y_test shape: {y_test.shape}")
-        print("correcting y_train and y_test shape...")
-
-        label_to_remove = y_test.shape[1] - 1
-        mask_extra_label = y_test[:, label_to_remove] == 1
-        n_extra = np.sum(mask_extra_label)
-
-        x_test = x_test[~mask_extra_label]
-        y_test = y_test[~mask_extra_label, :]
-        y_test = np.delete(y_test, label_to_remove, axis=1)
-
-        print(f"extra label samples: {n_extra}")
-        print(f"corrected y_test shape: {y_test.shape}")
-        print(f"corrected x_test shape: {x_test.shape}")
-
-    return x_test, y_test
+    return labels_names, x_small, y_small
 
 
-def subset_analysis(x_set: np.ndarray, y_set: np.ndarray, results_dir: str, scenario: str):
+def shape_fixer(train_name: list, test_name: list,
+                x_train: np.ndarray, y_train: np.ndarray,
+                x_test: np.ndarray, y_test: np.ndarray):
+    train_class_to_remove = [elem for elem in train_name if isinstance(elem, int)]
+    test_class_to_remove = [
+        elem for elem in test_name
+        if isinstance(elem, int) or elem not in train_name
+    ]
+
+    print("\n\nWARNING! it seems like that labels are not properly set")
+    print("Removing useless classes...")
+
+    y_train_idx = np.argmax(y_train, axis=1)
+    y_test_idx = np.argmax(y_test, axis=1)
+
+    class_to_name = {i: name for i, name in enumerate(train_name)}
+
+    train_remove_idx = [i for i, name in class_to_name.items() if name in train_class_to_remove]
+    test_remove_idx = [i for i, name in class_to_name.items() if name in test_class_to_remove]
+
+    if train_remove_idx:
+        mask_train = ~np.isin(y_train_idx, train_remove_idx)
+        x_train = x_train[mask_train]
+        y_train = y_train[mask_train]
+
+    if test_remove_idx:
+        mask_test = ~np.isin(y_test_idx, test_remove_idx)
+        x_test = x_test[mask_test]
+        y_test = y_test[mask_test]
+
+    train_drop_cols = [i for i, name in enumerate(train_name) if name in train_class_to_remove]
+    test_drop_cols = [i for i, name in enumerate(test_name) if name in test_class_to_remove]
+
+    if train_drop_cols:
+        keep_cols_train = np.setdiff1d(np.arange(y_train.shape[1]), train_drop_cols, assume_unique=True)
+        y_train = y_train[:, keep_cols_train]
+        train_name = [train_name[i] for i in keep_cols_train]
+
+    if test_drop_cols:
+        keep_cols_test = np.setdiff1d(np.arange(y_test.shape[1]), test_drop_cols, assume_unique=True)
+        y_test = y_test[:, keep_cols_test]
+        test_name = [test_name[i] for i in keep_cols_test]
+
+    train_name = [c for c in train_name if c not in train_class_to_remove]
+    test_name = [c for c in test_name if c not in test_class_to_remove]
+
+    print(f"Removed {len(train_class_to_remove)} classes from training set.")
+    print(f"Removed {len(test_class_to_remove)} classes from test set.")
+    print(f"Training samples left: {len(y_train)}")
+    print(f"Testing samples left: {len(y_test)}")
+
+    # here we align train and test set
+    y_test, test_name = align_labels_columns(y_test, test_name, train_name)
+
+    return train_name, test_name, x_train, y_train, x_test, y_test
+
+
+def subset_labeling(x_set: np.ndarray, y_set: np.ndarray, results_dir: str, scenario: str):
     """This functions filters the datasets and removes all the unlabeled samples.
        The subset analysis function was initially created just to have an idea of
        how many samples, features and labels where inside a given dataset and
@@ -81,8 +126,12 @@ def subset_analysis(x_set: np.ndarray, y_set: np.ndarray, results_dir: str, scen
        y_set: np.ndarray (n_samples, n_labels)
        results_dir: Path to the directory where to store the results
        scenario: str containing TRAINING if applied to the training set, TEST if applied to the test set.
+
+       outputs:
+       label_name: list of label names
+       x_small, y_small: np.ndarray containing the subset samples, their features and their labels
        """
-    print(f"\n----{scenario} SUBSET ANALYSIS----")
+    print(f"\n----{scenario} SUBSET LABELING----")
 
     labeled_mask = (y_set > 0).any(axis=1)
 
@@ -99,16 +148,59 @@ def subset_analysis(x_set: np.ndarray, y_set: np.ndarray, results_dir: str, scen
     num_labels = y_labeled.shape[1]
     print(f"\nThe dataset has {num_labels} label columns.")
 
+    if scenario == "TRAINING":
+        with open("../Dataset/Labels/train_result.json") as f:
+            label_map = json.load(f)
+            f.close()
+    elif scenario == "TESTING":
+        with open("../Dataset/Labels/test_result.json") as f:
+            label_map = json.load(f)
+            f.close()
+    else:
+        label_map = {}
+
+    labels_names = []
     samples = 0
     for i in range(num_labels):
         samples_per_label = int(y_labeled[:, i].sum())
-        print(f"Label {i}: {samples_per_label} samples")
+
+        matched_label = None
+        for label, val in label_map.items():
+            if label_map is not None and val == samples_per_label:
+                if label not in labels_names and list(label_map.values()).count(val) == 1:
+                    matched_label = label
+                    break
+
+        if matched_label:
+            labels_names.append(matched_label)
+        else:
+            labels_names.append(i)
+
+        print(f"Label {labels_names[i]}: {samples_per_label} samples")
         samples += samples_per_label
 
     print(f"\nTotal labeled samples counted: {samples}")
 
-    # save dataset
-    np.save(results_dir + f"x_{scenario}_small.npy", x_labeled)
-    np.save(results_dir + f"y_{scenario}_small.npy", y_labeled)
+    # np.save(results_dir + f"x_{scenario}_small.npy", x_labeled)
+    # np.save(results_dir + f"y_{scenario}_small.npy", y_labeled)
 
-    return x_labeled, y_labeled
+    return labels_names, x_labeled, y_labeled
+
+
+def subset_analysis(x_set: np.ndarray, y_set: np.ndarray, results_dir: str, scenario: str, labels_names=None):
+    print(f"\n----{scenario} SUBSET ANALYSIS----\n")
+    print(f"Total samples:       {len(x_set)}")
+    print(f"\nSubset features shape: {x_set.shape}")
+    print(f"Subset labels shape:   {y_set.shape}")
+    num_labels = y_set.shape[1]
+    print(f"\nThe dataset has {num_labels} label columns.")
+    samples = 0
+    for i in range(num_labels):
+        samples_per_label = int(y_set[:, i].sum())
+        if labels_names is not None:
+            print(f"Label {labels_names[i]}: {samples_per_label} samples")
+        else:
+            print(f"Label {i}: {samples_per_label} samples")
+        samples += samples_per_label
+
+    print(f"\nTotal labeled samples counted: {samples}")

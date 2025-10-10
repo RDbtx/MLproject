@@ -40,7 +40,7 @@ def save_model(model: RandomForestClassifier, model_name: str) -> None:
     joblib.dump(model, models_dir + f"{model_name}_malware_classifier.joblib")
 
 
-def model_train(model: RandomForestClassifier, x: np.ndarray, y: np.ndarray, results_dir: str):
+def model_train(model: RandomForestClassifier, labels_names: list, x: np.ndarray, y: np.ndarray, results_dir: str):
     """This function is used to train the model evaluate the training performances.
 
     inputs:
@@ -59,20 +59,21 @@ def model_train(model: RandomForestClassifier, x: np.ndarray, y: np.ndarray, res
     print("Training model...")
     train_time = time.time()
     model.fit(x, y)
-    print(f"Training time: {time.time() - train_time:.1f} s")
+    print(f"Training time: {(time.time() - train_time):.1f} h")
     print("----TRAINING COMPLETED----\n\n")
 
     train_predictions = model.predict(x)
 
-    np.save(results_dir + "train_prediction.npy", train_predictions)
+    # np.save(results_dir + "train_prediction.npy", train_predictions)
 
-    accuracy, precision, recall, class_report, cm = model_performances_multiclass(y, train_predictions, "TRAINING")
+    accuracy, precision, recall, class_report, cm = model_performances_multiclass(labels_names, y, train_predictions,
+                                                                                  "TRAINING")
     model_performances_report_generation(accuracy, precision, recall, class_report, cm, "TRAINING", results_dir)
 
     return model, train_predictions
 
 
-def model_test(model: RandomForestClassifier, x: np.ndarray, y: np.ndarray, results_dir: str):
+def model_test(model: RandomForestClassifier, labels_names: list, x: np.ndarray, y: np.ndarray, results_dir: str):
     """This function is used to train the model evaluate the training performances.
 
         inputs:
@@ -88,12 +89,13 @@ def model_test(model: RandomForestClassifier, x: np.ndarray, y: np.ndarray, resu
     print("Testing model...")
     test_time = time.time()
     test_predictions = model.predict(x)
-    print(f"Testing time: {time.time() - test_time:.1f} s")
+    print(f"Test time: {(time.time() - test_time):.1f} h")
     print("----TESTING COMPLETED----\n\n")
 
-    np.save(results_dir + "test_prediction.npy", test_predictions)
+    # np.save(results_dir + "test_prediction.npy", test_predictions)
 
-    accuracy, precision, recall, class_report, cm = model_performances_multiclass(y, test_predictions, "TESTING")
+    accuracy, precision, recall, class_report, cm = model_performances_multiclass(labels_names, y, test_predictions,
+                                                                                  "TESTING")
     model_performances_report_generation(accuracy, precision, recall, class_report, cm, "TESTING", results_dir)
 
     return test_predictions
@@ -115,16 +117,24 @@ if __name__ == "__main__":
     print("y_test shape: ", y_test.shape)
 
     # modify the third variable of the subset_generation function if you want to use a smaller dataset
-    x_train, y_train = subset_generation(x_train, y_train, len(x_train), RESULTS_DIR, "TRAINING")
-    x_test, y_test = subset_generation(x_test, y_test, len(x_test), RESULTS_DIR, "TESTING")
+    train_labels, x_train, y_train = subset_generation(x_train, y_train, len(x_train), RESULTS_DIR, "TRAINING")
+    test_labels, x_test, y_test = subset_generation(x_test, y_test, len(x_test), RESULTS_DIR, "TESTING")
 
+    print("\n----DATASET ANALYSIS----")
+    print("x_train shape: ", x_train.shape)
+    print("y_train shape: ", y_train.shape)
+    print("x_test shape: ", x_test.shape)
+    print("y_test shape: ", y_test.shape)
 
-    # this section is used to reshape the test set since seems like that the test set has one additional label
-    # (which probably contains outliers) that is not present in the training set.
-    x_test, y_test = shape_fixer(y_train, x_test, y_test)
+    # this section is used to reshape the test set since seems like that the test set has additional labels
+    # that are not present in the training set.
+    train_labels, test_labels, x_train, y_train, x_test, y_test = shape_fixer(train_labels, test_labels, x_train,y_train, x_test, y_test)
+
+    subset_analysis(x_train, y_train, RESULTS_DIR,"TRAINING", train_labels )
+    subset_analysis(x_test, y_test, RESULTS_DIR,"TESTING", test_labels )
 
     # model training
-    trained_rf, train_predictions = model_train(rf, x_train, y_train, RESULTS_DIR)
-    save_model(trained_rf, "RF")
+    trained_rf, train_predictions = model_train(rf, train_labels, x_train, y_train, RESULTS_DIR)
+    # save_model(trained_rf, "RF")
 
-    test_predictions = model_test(rf, x_test, y_test, RESULTS_DIR)
+    test_predictions = model_test(rf, test_labels, x_test, y_test, RESULTS_DIR)
