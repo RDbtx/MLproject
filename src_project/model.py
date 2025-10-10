@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     # this section is used to reshape the test set since seems like that the test set has additional labels
     # that are not present in the training set.
-    train_labels, test_labels, x_train, y_train, x_test, y_test = shape_fixer(train_labels, test_labels, x_train,
+    train_labels, test_labels, x_train, y_train, x_test, y_test = shape_fixer(1000, train_labels, test_labels, x_train,
                                                                               y_train, x_test, y_test)
 
     subset_analysis(x_train, y_train, "TRAINING", train_labels)
@@ -62,6 +62,6 @@ if __name__ == "__main__":
 
     # model training
     trained_rf, train_predictions = model_train(knn, train_labels, x_train, y_train)
-    save_model(trained_rf, "KNN")
+    # save_model(trained_rf, "KNN")
 
     test_predictions = model_test(knn, test_labels, x_test, y_test)

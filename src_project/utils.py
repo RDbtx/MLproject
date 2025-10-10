@@ -56,13 +56,19 @@ def subset_generation(x: np.ndarray, y: np.ndarray, subset_len: int, scenario: s
     return labels_names, x_small, y_small
 
 
-def shape_fixer(train_name: list, test_name: list,
+def shape_fixer(min_samples_per_train_label :int, train_name: list, test_name: list,
                 x_train: np.ndarray, y_train: np.ndarray,
                 x_test: np.ndarray, y_test: np.ndarray):
     train_class_to_remove = [elem for elem in train_name if isinstance(elem, int)]
+    num_labels = y_train.shape[1]
+    for i in range(num_labels):
+        samples_per_label = int(y_train[:, i].sum())
+        if samples_per_label < min_samples_per_train_label:
+            train_class_to_remove.append(train_name[i])
+
     test_class_to_remove = [
         elem for elem in test_name
-        if isinstance(elem, int) or elem not in train_name
+        if isinstance(elem, int) or elem not in train_name or elem in train_class_to_remove
     ]
 
     print("\n\nWARNING! it seems like that labels are not properly set")
@@ -113,13 +119,13 @@ def shape_fixer(train_name: list, test_name: list,
     saving_time = time.time()
     print("Saving new datasets...")
     os.makedirs(SUBSET_DIR, exist_ok=True)
-    np.save(SUBSET_DIR + "x_train_small.npy", x_train)
+    #np.save(SUBSET_DIR + "x_train_small.npy", x_train)
     print(f"x_train set saved at {SUBSET_DIR} x_train_small.npy")
-    np.save(SUBSET_DIR + "y_train_small.npy", y_train)
+    #np.save(SUBSET_DIR + "y_train_small.npy", y_train)
     print(f"y_train set saved at {SUBSET_DIR} y_train_small.npy")
-    np.save(SUBSET_DIR + "x_test_small.npy", x_test)
+    #np.save(SUBSET_DIR + "x_test_small.npy", x_test)
     print(f"x_test set saved at {SUBSET_DIR} x_test_small.npy")
-    np.save(SUBSET_DIR + "y_test_small.npy", y_test)
+    #np.save(SUBSET_DIR + "y_test_small.npy", y_test)
     print(f"y_test set saved at {SUBSET_DIR} y_test_small.npy")
     print(f"Saving time: {(time.time() - saving_time):.1f} s")
     print(f"Dataset saved.")

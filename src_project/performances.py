@@ -135,10 +135,10 @@ def model_performances_multiclass(labels_names: list, y_true: np.ndarray, y_pred
 
     os.makedirs(KNN_RESULT_DIR, exist_ok=True)
     os.makedirs(RF_RESULT_DIR, exist_ok=True)
-    if model_name == "RF":
-        plt.savefig(os.path.join(RF_RESULT_DIR, model_name + "_" + scenario + "_conf_matrix.png"))
-    elif model_name == "KNN":
-        plt.savefig(os.path.join(KNN_RESULT_DIR, model_name + "_" + scenario + "_conf_matrix.png"))
+    #if model_name == "RF":
+        #plt.savefig(os.path.join(RF_RESULT_DIR, model_name + "_" + scenario + "_conf_matrix.png"))
+    #elif model_name == "KNN":
+        #plt.savefig(os.path.join(KNN_RESULT_DIR, model_name + "_" + scenario + "_conf_matrix.png"))
     plt.show()
 
     return accuracy, precision, recall, f1_macro, f1_micro, hamm_loss, class_report, cm

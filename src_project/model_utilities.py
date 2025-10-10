@@ -115,13 +115,3 @@ def model_test(model, labels_names: list, x: np.ndarray, y: np.ndarray):
                                              "RF")
 
     return test_predictions
-
-
-# =====================================
-# --- Probability ---
-# =====================================
-
-def predict_probability_multilabel(model, x_set: np.ndarray, threshold: float = 0.5) -> np.ndarray:
-    probabilities = model.predict_proba(x_set)
-    proba_matrix = np.column_stack([p[:, 1] for p in probabilities])
-    return (proba_matrix >= threshold).astype(int)
