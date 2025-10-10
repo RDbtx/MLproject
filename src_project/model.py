@@ -16,10 +16,10 @@ rf = RandomForestClassifier(
 )
 
 knn = KNeighborsClassifier(
-    n_neighbors=7,
+    n_neighbors=6,
     weights='distance',
     algorithm='brute',
-    metric='hamming',
+    metric='euclidean',
     n_jobs=-1
 )
 
@@ -30,7 +30,7 @@ knn = KNeighborsClassifier(
 if __name__ == "__main__":
     DATASET_DIR = "../Dataset"
     EXTRACTED_DATA_DIR = "../Extracted"
-    RESULTS_DIR = "../Results/decision_forest/"
+    RESULTS_DIR = "../Results"
 
     x_train, y_train, x_test, y_test, x_challenge, y_challenge = feature_loading(EXTRACTED_DATA_DIR,
                                                                                  ["x_train.npy", "y_train.npy",
@@ -43,8 +43,8 @@ if __name__ == "__main__":
     print("y_test shape: ", y_test.shape)
 
     # modify the third variable of the subset_generation function if you want to use a smaller dataset
-    train_labels, x_train, y_train = subset_generation(x_train, y_train, len(x_train), RESULTS_DIR, "TRAINING")
-    test_labels, x_test, y_test = subset_generation(x_test, y_test, len(x_test), RESULTS_DIR, "TESTING")
+    train_labels, x_train, y_train = subset_generation(x_train, y_train, len(x_train), "TRAINING")
+    test_labels, x_test, y_test = subset_generation(x_test, y_test, len(x_test), "TESTING")
 
     print("\n----DATASET ANALYSIS----")
     print("x_train shape: ", x_train.shape)
@@ -57,11 +57,11 @@ if __name__ == "__main__":
     train_labels, test_labels, x_train, y_train, x_test, y_test = shape_fixer(train_labels, test_labels, x_train,
                                                                               y_train, x_test, y_test)
 
-    subset_analysis(x_train, y_train, RESULTS_DIR, "TRAINING", train_labels)
-    subset_analysis(x_test, y_test, RESULTS_DIR, "TESTING", test_labels)
+    subset_analysis(x_train, y_train, "TRAINING", train_labels)
+    subset_analysis(x_test, y_test, "TESTING", test_labels)
 
     # model training
-    trained_rf, train_predictions = model_train(knn, train_labels, x_train, y_train, RESULTS_DIR)
-    # save_model(trained_rf, "RF")
+    trained_rf, train_predictions = model_train(knn, train_labels, x_train, y_train)
+    save_model(trained_rf, "KNN")
 
-    test_predictions = model_test(knn, test_labels, x_test, y_test, RESULTS_DIR)
+    test_predictions = model_test(knn, test_labels, x_test, y_test)

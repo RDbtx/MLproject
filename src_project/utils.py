@@ -1,10 +1,11 @@
-import numpy as np
 import time
 import thrember
 import os
 import shutil
 import json
 import numpy as np
+
+SUBSET_DIR = "../Results/Subsets/"
 
 
 def align_labels_columns(y_test: np.ndarray, test_labels: list, train_labels: list):
@@ -31,7 +32,7 @@ def align_labels_columns(y_test: np.ndarray, test_labels: list, train_labels: li
     return y_test_aligned, test_labels_aligned
 
 
-def subset_generation(x: np.ndarray, y: np.ndarray, subset_len: int, results_dir: str, scenario: str):
+def subset_generation(x: np.ndarray, y: np.ndarray, subset_len: int, scenario: str):
     """subset_generation processes the dataset removing unlabeled data. It
     can also be used to generate a smaller subset of the dataset by modifying the
     subset_len parameter.
@@ -40,7 +41,6 @@ def subset_generation(x: np.ndarray, y: np.ndarray, subset_len: int, results_dir
     x: np.ndarray containing the samples and their features
     y: np.ndarray containing the samples and their labels
     subset_len: is an integer that specifies how many samples we want to keep
-    results_dir: Path to the directory where to store the results
     scenario: name of the scenario, could be TRAINING or TESTING
 
     outputs:
@@ -51,7 +51,7 @@ def subset_generation(x: np.ndarray, y: np.ndarray, subset_len: int, results_dir
     y_small = y[idx]
 
     # remove unlabeled samples
-    labels_names, x_small, y_small = subset_labeling(x_small, y_small, results_dir, scenario)
+    labels_names, x_small, y_small = subset_labeling(x_small, y_small, scenario)
 
     return labels_names, x_small, y_small
 
@@ -110,10 +110,24 @@ def shape_fixer(train_name: list, test_name: list,
     # here we align train and test set
     y_test, test_name = align_labels_columns(y_test, test_name, train_name)
 
+    saving_time = time.time()
+    print("Saving new datasets...")
+    os.makedirs(SUBSET_DIR, exist_ok=True)
+    np.save(SUBSET_DIR + "x_train_small.npy", x_train)
+    print(f"x_train set saved at {SUBSET_DIR} x_train_small.npy")
+    np.save(SUBSET_DIR + "y_train_small.npy", y_train)
+    print(f"y_train set saved at {SUBSET_DIR} y_train_small.npy")
+    np.save(SUBSET_DIR + "x_test_small.npy", x_test)
+    print(f"x_test set saved at {SUBSET_DIR} x_test_small.npy")
+    np.save(SUBSET_DIR + "y_test_small.npy", y_test)
+    print(f"y_test set saved at {SUBSET_DIR} y_test_small.npy")
+    print(f"Saving time: {(time.time() - saving_time):.1f} s")
+    print(f"Dataset saved.")
+
     return train_name, test_name, x_train, y_train, x_test, y_test
 
 
-def subset_labeling(x_set: np.ndarray, y_set: np.ndarray, results_dir: str, scenario: str):
+def subset_labeling(x_set: np.ndarray, y_set: np.ndarray, scenario: str):
     """This functions filters the datasets and removes all the unlabeled samples.
        The subset analysis function was initially created just to have an idea of
        how many samples, features and labels where inside a given dataset and
@@ -181,13 +195,10 @@ def subset_labeling(x_set: np.ndarray, y_set: np.ndarray, results_dir: str, scen
 
     print(f"\nTotal labeled samples counted: {samples}")
 
-    # np.save(results_dir + f"x_{scenario}_small.npy", x_labeled)
-    # np.save(results_dir + f"y_{scenario}_small.npy", y_labeled)
-
     return labels_names, x_labeled, y_labeled
 
 
-def subset_analysis(x_set: np.ndarray, y_set: np.ndarray, results_dir: str, scenario: str, labels_names=None):
+def subset_analysis(x_set: np.ndarray, y_set: np.ndarray, scenario: str, labels_names=None):
     print(f"\n----{scenario} SUBSET ANALYSIS----\n")
     print(f"Total samples:       {len(x_set)}")
     print(f"\nSubset features shape: {x_set.shape}")

@@ -32,7 +32,7 @@ def save_model(model: RandomForestClassifier, model_name: str) -> None:
     joblib.dump(model, models_dir + f"{model_name}_malware_classifier.joblib")
 
 
-def model_train(model, labels_names: list, x: np.ndarray, y: np.ndarray, results_dir: str):
+def model_train(model, labels_names: list, x: np.ndarray, y: np.ndarray):
     """This function is used to train the model evaluate the training performances.
 
     inputs:
@@ -45,7 +45,6 @@ def model_train(model, labels_names: list, x: np.ndarray, y: np.ndarray, results
     model: the trained model
     train_predictions:  np.ndarray containing the predictions generated during training
     """
-    os.makedirs(results_dir, exist_ok=True)
 
     print("\n----MODEL TRAINING STARTED----")
     print("Training model...")
@@ -54,25 +53,33 @@ def model_train(model, labels_names: list, x: np.ndarray, y: np.ndarray, results
     print(f"Training time: {(time.time() - train_time):.1f} s")
     print("----TRAINING COMPLETED----\n\n")
 
-    print("training predictions...")
+    prediction_time = time.time()
+    print("\ntraining predictions...")
     train_predictions = model.predict(x)
-    print("predictions computed.")
-
-    # np.save(results_dir + "train_prediction.npy", train_predictions)
+    print(f"Training predict time: {(time.time() - prediction_time):.1f} s")
+    print("predictions computed.\n")
 
     if type(model) is KNeighborsClassifier:
-        accuracy, precision, recall, class_report, cm = model_performances_multiclass_knn(labels_names, y,
-                                                                                          train_predictions, "TESTING")
+        accuracy, precision, recall, f1_macro, f1_micro, hamm_loss, class_report, cm = model_performances_multiclass(
+            labels_names, y,
+            train_predictions, "TRAINING",
+            "KNN")
+        model_performances_report_generation(accuracy, precision, recall, f1_macro, f1_micro, hamm_loss, class_report,
+                                             cm, "TRAINING",
+                                             "KNN")
     elif type(model) is RandomForestClassifier:
-        accuracy, precision, recall, class_report, cm = model_performances_multiclass(labels_names, y,
-                                                                                      train_predictions, "TESTING")
-
-    model_performances_report_generation(accuracy, precision, recall, class_report, cm, "TESTING", results_dir)
+        accuracy, precision, recall, f1_macro, f1_micro, hamm_loss, class_report, cm = model_performances_multiclass(
+            labels_names, y,
+            train_predictions, "TRAINING",
+            "RF")
+        model_performances_report_generation(accuracy, precision, recall, f1_macro, f1_micro, hamm_loss, class_report,
+                                             cm, "TRAINING",
+                                             "RF")
 
     return model, train_predictions
 
 
-def model_test(model, labels_names: list, x: np.ndarray, y: np.ndarray, results_dir: str):
+def model_test(model, labels_names: list, x: np.ndarray, y: np.ndarray):
     """This function is used to train the model evaluate the training performances.
 
         inputs:
@@ -91,15 +98,30 @@ def model_test(model, labels_names: list, x: np.ndarray, y: np.ndarray, results_
     print(f"Test time: {(time.time() - test_time):.1f} h")
     print("----TESTING COMPLETED----\n\n")
 
-    # np.save(results_dir + "test_prediction.npy", test_predictions)
-
-    if model is KNeighborsClassifier:
-        accuracy, precision, recall, class_report, cm = model_performances_multiclass_knn(labels_names, y,
-                                                                                          test_predictions, "TESTING")
-        model_performances_report_generation(accuracy, precision, recall, class_report, cm, "TESTING", results_dir)
-    elif model is RandomForestClassifier:
-        accuracy, precision, recall, class_report, cm = model_performances_multiclass(labels_names, y, test_predictions,
-                                                                                      "TESTING")
-        model_performances_report_generation(accuracy, precision, recall, class_report, cm, "TESTING", results_dir)
+    if type(model) is KNeighborsClassifier:
+        accuracy, precision, recall, f1_macro, f1_micro, hamm_loss, class_report, cm = model_performances_multiclass(
+            labels_names, y,
+            test_predictions, "TESTING",
+            "KNN")
+        model_performances_report_generation(accuracy, precision, recall, f1_macro, f1_micro, hamm_loss, class_report,
+                                             cm, "TESTING",
+                                             "KNN")
+    elif type(model) is RandomForestClassifier:
+        accuracy, precision, recall, f1_macro, f1_micro, hamm_loss, class_report, cm = model_performances_multiclass(
+            labels_names, y, test_predictions,
+            "TESTING", "RF")
+        model_performances_report_generation(accuracy, precision, recall, f1_macro, f1_micro, hamm_loss, class_report,
+                                             cm, "TESTING",
+                                             "RF")
 
     return test_predictions
+
+
+# =====================================
+# --- Probability ---
+# =====================================
+
+def predict_probability_multilabel(model, x_set: np.ndarray, threshold: float = 0.5) -> np.ndarray:
+    probabilities = model.predict_proba(x_set)
+    proba_matrix = np.column_stack([p[:, 1] for p in probabilities])
+    return (proba_matrix >= threshold).astype(int)
