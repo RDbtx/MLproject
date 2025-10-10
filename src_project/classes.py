@@ -1,7 +1,5 @@
 import json
 
-
-
 with open("../Dataset/Labels/train_result.json") as f:
     train_map = json.load(f)
     f.close()

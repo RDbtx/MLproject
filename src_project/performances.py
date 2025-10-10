@@ -1,11 +1,15 @@
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, accuracy_score, classification_report, \
-    precision_score, recall_score
+    precision_score, recall_score, hamming_loss,f1_score
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 
 RF_RESULT_DIR = "../Results/decision_forest/"
 
+
+# =====================================
+# --- General section ---
+# =====================================
 
 def to_class_indices(y: np.ndarray) -> np.ndarray:
     """This utility function is used to convert sample,label np.ndarray
@@ -59,6 +63,10 @@ def model_performances_report_generation(accuracy, precision, recall, class_repo
     print(f"Results saved to {file_path}")
 
 
+# =====================================
+# --- RF section ---
+# =====================================
+
 def model_performances_multiclass(labels_names: list, y_true: np.ndarray, y_pred: np.ndarray, scenario: str):
     """This function is used to compute the performances of our model. It computes
        model accuracy, precision, recall, class report and confusion matrix for the given scenario
@@ -108,5 +116,42 @@ def model_performances_multiclass(labels_names: list, y_true: np.ndarray, y_pred
     plt.tight_layout()
     plt.savefig(os.path.join(RF_RESULT_DIR, scenario + "_conf_matrix.png"))
     plt.show()
+
+    return accuracy, precision, recall, class_report, cm
+
+
+# =====================================
+# --- KNN section ---
+# =====================================
+
+def model_performances_multiclass_knn(labels_names: list, y_true: np.ndarray, y_pred: np.ndarray, scenario: str):
+    """
+    Faster multiclass metrics for kNN (or any classifier).
+    Returns (accuracy, precision_macro, recall_macro, class_report(None), cm)
+    and always plots the confusion matrix styled like your reference.
+    """
+
+    # Compute macro metrics
+    precision = precision_score(y_true, y_pred, average='macro', zero_division=0)
+    recall = recall_score(y_true, y_pred, average='macro', zero_division=0)
+    accuracy = accuracy_score(y_true, y_pred)
+    f1_micro = f1_score(y_true, y_pred, average='micro', zero_division=0)
+    f1_macro = f1_score(y_true, y_pred, average='macro', zero_division=0)
+    hamm_loss = hamming_loss(y_true, y_pred)
+    class_report = None
+    cm = None
+
+    # Logging
+    classes = y_true.shape[1]
+    samples = y_true.shape[0]
+    print(f"\n----{scenario} PERFORMANCES----")
+    print(f"Samples: {samples} | Classes: {classes}")
+    print(f"Accuracy:  {accuracy:.4f}")
+    print(f"Precision: {precision:.4f} (macro)")
+    print(f"Recall:    {recall:.4f} (macro)")
+    print(f"F1-score:   {f1_micro:.4f} (micro)")
+    print(f"F1-score:   {f1_macro:.4f} (macro)")
+    print(f"Hamming Loss:  {hamm_loss:.4f} (macro)")
+
 
     return accuracy, precision, recall, class_report, cm
