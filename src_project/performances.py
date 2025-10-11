@@ -52,6 +52,9 @@ def model_performances_report_generation(accuracy, precision, recall, f1_macro, 
     elif model_name == "GRAD_BOOSTING":
         report_dir = GRADBOSTING_RESULT_DIR + f"reports/"
         os.makedirs(report_dir, exist_ok=True)
+    else:
+        report_dir = f"../Results/Generic/reports/"
+        os.makedirs(report_dir, exist_ok=True)
 
     print("Performance Report generation...")
     report_str = []

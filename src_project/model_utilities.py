@@ -1,4 +1,3 @@
-from sklearn.base import ClassifierMixin
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.multioutput import MultiOutputClassifier
 from sklearn.neighbors import KNeighborsClassifier
@@ -6,19 +5,18 @@ from performances import *
 import time
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from setup_dataset import feature_loading
-from utils import subset_analysis, subset_generation, shape_fixer
+from utils import subset_analysis, set_generation, shape_fixer
 from performances import *
 import time
 from sklearn.ensemble import RandomForestClassifier
 from setup_dataset import feature_loading
-from utils import subset_analysis, subset_generation, shape_fixer
+from utils import subset_analysis, set_generation, shape_fixer
 import joblib
 
 
 # =====================================
 # --- Main utility functions ---
 # =====================================
-
 
 def save_model(model: RandomForestClassifier, model_name: str) -> None:
     """This function is used to save the trained model as a joblib file

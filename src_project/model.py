@@ -1,11 +1,13 @@
 from sklearn.multioutput import MultiOutputClassifier
 from sklearn.multiclass import OneVsRestClassifier
+
 import lightgbm as lgb
 from model_utilities import *
 
 # =====================================
 # --- Model declaration ---
 # =====================================
+
 lghtbm = lgb.LGBMClassifier(
     objective='binary',  # binary for each label
     n_estimators=1000,
@@ -62,9 +64,12 @@ if __name__ == "__main__":
     print("x_test shape: ", x_test.shape)
     print("y_test shape: ", y_test.shape)
 
-    # modify the third variable of the subset_generation function if you want to use a smaller dataset
-    train_labels, x_train, y_train = subset_generation(x_train, y_train, len(x_train), "TRAINING")
-    test_labels, x_test, y_test = subset_generation(x_test, y_test, len(x_test), "TESTING")
+    # modify the third variable of the set_generation function if you want to use a smaller dataset
+    train_labels, x_train, y_train = set_generation(x_train, y_train, len(x_train), "TRAINING")
+    test_labels, x_test, y_test = set_generation(x_test, y_test, len(x_test), "TESTING")
+
+    # uncomment this section if u want your training and test set to be a split of the original training set
+    #  x_train, x_test, y_train, y_test, test_labels = training_set_split( x_train, y_train,train_labels, test_size=0.33)
 
     print("\n----DATASET ANALYSIS----")
     print("x_train shape: ", x_train.shape)

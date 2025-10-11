@@ -1,9 +1,9 @@
 import time
-import thrember
+from typing import Any
 import os
-import shutil
 import json
 import numpy as np
+from sklearn.model_selection import train_test_split
 
 SUBSET_DIR = "../Results/Subsets/"
 
@@ -32,7 +32,7 @@ def align_labels_columns(y_test: np.ndarray, test_labels: list, train_labels: li
     return y_test_aligned, test_labels_aligned
 
 
-def subset_generation(x: np.ndarray, y: np.ndarray, subset_len: int, scenario: str):
+def set_generation(x: np.ndarray, y: np.ndarray, subset_len: int, scenario: str):
     """subset_generation processes the dataset removing unlabeled data. It
     can also be used to generate a smaller subset of the dataset by modifying the
     subset_len parameter.
@@ -56,7 +56,7 @@ def subset_generation(x: np.ndarray, y: np.ndarray, subset_len: int, scenario: s
     return labels_names, x_small, y_small
 
 
-def shape_fixer(min_samples_per_train_label :int, train_name: list, test_name: list,
+def shape_fixer(min_samples_per_train_label: int, train_name: list, test_name: list,
                 x_train: np.ndarray, y_train: np.ndarray,
                 x_test: np.ndarray, y_test: np.ndarray):
     train_class_to_remove = [elem for elem in train_name if isinstance(elem, int)]
@@ -119,13 +119,13 @@ def shape_fixer(min_samples_per_train_label :int, train_name: list, test_name: l
     saving_time = time.time()
     print("Saving new datasets...")
     os.makedirs(SUBSET_DIR, exist_ok=True)
-    #np.save(SUBSET_DIR + "x_train_small.npy", x_train)
+    # np.save(SUBSET_DIR + "x_train_small.npy", x_train)
     print(f"x_train set saved at {SUBSET_DIR} x_train_small.npy")
-    #np.save(SUBSET_DIR + "y_train_small.npy", y_train)
+    # np.save(SUBSET_DIR + "y_train_small.npy", y_train)
     print(f"y_train set saved at {SUBSET_DIR} y_train_small.npy")
-    #np.save(SUBSET_DIR + "x_test_small.npy", x_test)
+    # np.save(SUBSET_DIR + "x_test_small.npy", x_test)
     print(f"x_test set saved at {SUBSET_DIR} x_test_small.npy")
-    #np.save(SUBSET_DIR + "y_test_small.npy", y_test)
+    # np.save(SUBSET_DIR + "y_test_small.npy", y_test)
     print(f"y_test set saved at {SUBSET_DIR} y_test_small.npy")
     print(f"Saving time: {(time.time() - saving_time):.1f} s")
     print(f"Dataset saved.")
@@ -221,3 +221,10 @@ def subset_analysis(x_set: np.ndarray, y_set: np.ndarray, scenario: str, labels_
         samples += samples_per_label
 
     print(f"\nTotal labeled samples counted: {samples}")
+
+
+def training_set_split(x: np.ndarray, y: np.ndarray, train_labels: list,
+                       test_size: object = 0.33) -> tuple[Any, Any, Any, Any, list]:
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size, random_state=42)
+    test_labels = train_labels
+    return x_train, x_test, y_train, y_test, test_labels
