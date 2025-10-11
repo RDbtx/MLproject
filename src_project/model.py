@@ -1,3 +1,5 @@
+from sklearn.multioutput import MultiOutputClassifier
+
 from model_utilities import *
 
 # =====================================
@@ -5,15 +7,18 @@ from model_utilities import *
 # =====================================
 
 rf = RandomForestClassifier(
-    n_estimators=600,
-    max_depth=14,
+    n_estimators=300,
     min_samples_split=20,
     min_samples_leaf=10,
     max_features="sqrt",
     bootstrap=True,
+    max_samples=0.8,
+    class_weight="balanced_subsample",
     n_jobs=-1,
     random_state=42,
 )
+
+rf_multi = MultiOutputClassifier(rf, n_jobs=1)
 
 knn = KNeighborsClassifier(
     n_neighbors=6,
@@ -54,14 +59,14 @@ if __name__ == "__main__":
 
     # this section is used to reshape the test set since seems like that the test set has additional labels
     # that are not present in the training set.
-    train_labels, test_labels, x_train, y_train, x_test, y_test = shape_fixer(1000, train_labels, test_labels, x_train,
+    train_labels, test_labels, x_train, y_train, x_test, y_test = shape_fixer(100, train_labels, test_labels, x_train,
                                                                               y_train, x_test, y_test)
 
     subset_analysis(x_train, y_train, "TRAINING", train_labels)
     subset_analysis(x_test, y_test, "TESTING", test_labels)
 
     # model training
-    trained_rf, train_predictions = model_train(knn, train_labels, x_train, y_train)
-    # save_model(trained_rf, "KNN")
+    trained_model, train_predictions = model_train(rf_multi, train_labels, x_train, y_train)
+    # save_model(trained_model, "KNN")
 
-    test_predictions = model_test(knn, test_labels, x_test, y_test)
+    test_predictions = model_test(rf_multi, test_labels, x_test, y_test)
