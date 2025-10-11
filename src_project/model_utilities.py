@@ -1,8 +1,10 @@
 from sklearn.base import ClassifierMixin
+from sklearn.multiclass import OneVsRestClassifier
+from sklearn.multioutput import MultiOutputClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from performances import *
 import time
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from setup_dataset import feature_loading
 from utils import subset_analysis, subset_generation, shape_fixer
 from performances import *
@@ -67,7 +69,7 @@ def model_train(model, labels_names: list, x: np.ndarray, y: np.ndarray):
         model_performances_report_generation(accuracy, precision, recall, f1_macro, f1_micro, hamm_loss, class_report,
                                              cm, "TRAINING",
                                              "KNN")
-    elif type(model) is RandomForestClassifier:
+    if type(model) is MultiOutputClassifier:
         accuracy, precision, recall, f1_macro, f1_micro, hamm_loss, class_report, cm = model_performances_multiclass(
             labels_names, y,
             train_predictions, "TRAINING",
@@ -75,6 +77,14 @@ def model_train(model, labels_names: list, x: np.ndarray, y: np.ndarray):
         model_performances_report_generation(accuracy, precision, recall, f1_macro, f1_micro, hamm_loss, class_report,
                                              cm, "TRAINING",
                                              "RF")
+    elif type(model) is OneVsRestClassifier:
+        accuracy, precision, recall, f1_macro, f1_micro, hamm_loss, class_report, cm = model_performances_multiclass(
+            labels_names, y,
+            train_predictions, "TRAINING",
+            "GRAD_BOOSTING")
+        model_performances_report_generation(accuracy, precision, recall, f1_macro, f1_micro, hamm_loss, class_report,
+                                             cm, "TRAINING",
+                                             "GRAD_BOOSTING")
 
     return model, train_predictions
 
@@ -95,7 +105,7 @@ def model_test(model, labels_names: list, x: np.ndarray, y: np.ndarray):
     print("Testing model...")
     test_time = time.time()
     test_predictions = model.predict(x)
-    print(f"Test time: {(time.time() - test_time):.1f} h")
+    print(f"Test time: {(time.time() - test_time):.1f} s")
     print("----TESTING COMPLETED----\n\n")
 
     if type(model) is KNeighborsClassifier:
@@ -106,12 +116,19 @@ def model_test(model, labels_names: list, x: np.ndarray, y: np.ndarray):
         model_performances_report_generation(accuracy, precision, recall, f1_macro, f1_micro, hamm_loss, class_report,
                                              cm, "TESTING",
                                              "KNN")
-    elif type(model) is RandomForestClassifier:
+    elif type(model) is MultiOutputClassifier:
         accuracy, precision, recall, f1_macro, f1_micro, hamm_loss, class_report, cm = model_performances_multiclass(
             labels_names, y, test_predictions,
             "TESTING", "RF")
         model_performances_report_generation(accuracy, precision, recall, f1_macro, f1_micro, hamm_loss, class_report,
                                              cm, "TESTING",
                                              "RF")
+    elif type(model) is OneVsRestClassifier:
+        accuracy, precision, recall, f1_macro, f1_micro, hamm_loss, class_report, cm = model_performances_multiclass(
+            labels_names, y, test_predictions,
+            "TESTING", "GRAD_BOOSTING")
+        model_performances_report_generation(accuracy, precision, recall, f1_macro, f1_micro, hamm_loss, class_report,
+                                             cm, "TESTING",
+                                             "GRAD_BOOSTING")
 
     return test_predictions

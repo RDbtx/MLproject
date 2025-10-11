@@ -6,6 +6,7 @@ import os
 
 RF_RESULT_DIR = "../Results/decision_forest/"
 KNN_RESULT_DIR = "../Results/knn/"
+GRADBOSTING_RESULT_DIR = "../Results/gradboost/"
 
 
 # =====================================
@@ -48,6 +49,9 @@ def model_performances_report_generation(accuracy, precision, recall, f1_macro, 
     elif model_name == "RF":
         report_dir = RF_RESULT_DIR + f"reports/"
         os.makedirs(report_dir, exist_ok=True)
+    elif model_name == "GRAD_BOOSTING":
+        report_dir = GRADBOSTING_RESULT_DIR + f"reports/"
+        os.makedirs(report_dir, exist_ok=True)
 
     print("Performance Report generation...")
     report_str = []
@@ -58,14 +62,13 @@ def model_performances_report_generation(accuracy, precision, recall, f1_macro, 
     report_str.append(f"F1 micro Score: {f1_micro:.4f}")
     report_str.append(f"F1 macro Score: {f1_macro:.4f}")
     report_str.append(f"Hamming Loss: {hamm_loss:.4f}")
-    if model_name == "RF":
-        report_str.append("\nClassification Report:\n")
-        report_str.append(class_report)
+    report_str.append("\nClassification Report:\n")
+    report_str.append(class_report)
     report_str.append("\nConfusion Matrix:\n")
     report_str.append(np.array2string(conf_matrix))
     output = "\n".join(report_str)
 
-    file_path = report_dir + model_name + scenario + "_performances_report.txt"
+    file_path = report_dir + model_name + "_" + scenario + "_performances_report.txt"
     with open(file_path, "w") as f:
         f.write(output)
     print(f"Results saved to {file_path}")
@@ -102,13 +105,8 @@ def model_performances_multiclass(labels_names: list, y_true: np.ndarray, y_pred
     f1_macro = f1_score(y_true, y_pred, average='macro', zero_division=0)
     hamm_loss = hamming_loss(y_true, y_pred)
     cm = confusion_matrix(y_true, y_pred, labels=all_labels)
-    if model_name == "RF":
-        class_report = classification_report(y_true, y_pred, labels=all_labels, target_names=labels_names,
-                                             zero_division=0)
-    elif model_name == "KNN":
-        class_report = None
-    else:
-        class_report = None
+    class_report = classification_report(y_true, y_pred, labels=all_labels, target_names=labels_names,
+                                         zero_division=0)
 
     print(f"\n----{model_name} {scenario} PERFORMANCES----")
     print(f"Accuracy: {accuracy:.2f}")
@@ -118,9 +116,8 @@ def model_performances_multiclass(labels_names: list, y_true: np.ndarray, y_pred
     print(f"F1 Score: {f1_micro:.2f} (micro)")
     print(f"F1 Score: {f1_macro:.2f} (macro)")
 
-    if model_name == "RF":
-        print("\nClassification Report:")
-        print(class_report)
+    print("\nClassification Report:")
+    print(class_report)
 
     fig, ax = plt.subplots(figsize=(28, 28))
 
@@ -135,10 +132,12 @@ def model_performances_multiclass(labels_names: list, y_true: np.ndarray, y_pred
 
     os.makedirs(KNN_RESULT_DIR, exist_ok=True)
     os.makedirs(RF_RESULT_DIR, exist_ok=True)
-    #if model_name == "RF":
-        #plt.savefig(os.path.join(RF_RESULT_DIR, model_name + "_" + scenario + "_conf_matrix.png"))
-    #elif model_name == "KNN":
-        #plt.savefig(os.path.join(KNN_RESULT_DIR, model_name + "_" + scenario + "_conf_matrix.png"))
+    if model_name == "RF":
+        plt.savefig(os.path.join(RF_RESULT_DIR, model_name + "_" + scenario + "_conf_matrix.png"))
+    elif model_name == "KNN":
+        plt.savefig(os.path.join(KNN_RESULT_DIR, model_name + "_" + scenario + "_conf_matrix.png"))
+    elif model_name == "GRAD_BOOSTING":
+        plt.savefig(os.path.join(GRADBOSTING_RESULT_DIR, model_name + "_" + scenario + "_conf_matrix.png"))
     plt.show()
 
     return accuracy, precision, recall, f1_macro, f1_micro, hamm_loss, class_report, cm

@@ -1,10 +1,25 @@
 from sklearn.multioutput import MultiOutputClassifier
-
+from sklearn.multiclass import OneVsRestClassifier
+import lightgbm as lgb
 from model_utilities import *
 
 # =====================================
 # --- Model declaration ---
 # =====================================
+lghtbm = lgb.LGBMClassifier(
+    objective='binary',  # binary for each label
+    n_estimators=1000,
+    learning_rate=0.05,
+    num_leaves=63,
+    max_depth=-1,
+    subsample=0.8,
+    colsample_bytree=0.8,
+    class_weight='balanced',
+    n_jobs=-1,
+    random_state=42
+)
+
+multi_lghtbm = OneVsRestClassifier(lghtbm)
 
 rf = RandomForestClassifier(
     n_estimators=300,
@@ -66,7 +81,7 @@ if __name__ == "__main__":
     subset_analysis(x_test, y_test, "TESTING", test_labels)
 
     # model training
-    trained_model, train_predictions = model_train(rf_multi, train_labels, x_train, y_train)
+    trained_model, train_predictions = model_train(multi_lghtbm, train_labels, x_train, y_train)
     # save_model(trained_model, "KNN")
 
-    test_predictions = model_test(rf_multi, test_labels, x_test, y_test)
+    test_predictions = model_test(multi_lghtbm, test_labels, x_test, y_test)
