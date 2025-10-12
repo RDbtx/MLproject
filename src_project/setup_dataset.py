@@ -1,15 +1,21 @@
 from utils import *
+import shutil
+import thrember
+import os
+import time
 
 
 def file_mover(origin: str, destination: str) -> None:
-    """A utility function that iters to all the file contained into
+    """
+    A utility function that iters to all the file contained into
     the origin directory and moves them to the destination directory.
     This function was created to easily move files from one folder to another.
     Without any overhead of classic drag and drop.
 
-    input:
-    origin: path to the origin folder
-    destination: path to the destination folder
+    inputs:
+    - origin: path to the origin folder
+    - destination: path to the destination folder
+
     """
     for elem in os.listdir(origin):
         if "challenge" in elem:
@@ -18,12 +24,14 @@ def file_mover(origin: str, destination: str) -> None:
 
 
 def download_dataset(dataset_path: str) -> None:
-    """Download the dataset and extract it into the Dataset folder.
+    """
+    Download the dataset and extract it into the Dataset folder.
     Once the dataset .jsonl file are all unzipped, the feature extraction
     function is called to transform raw data into vectorized features.
 
     input:
-    dataset_path: path to the dataset folder
+    - dataset_path: path to the dataset folder
+
     """
     os.makedirs(dataset_path, exist_ok=True)
     thrember.download_dataset(dataset_path, file_type="Win64")
@@ -31,12 +39,20 @@ def download_dataset(dataset_path: str) -> None:
 
 
 def read_dataset(dataset_path: str):
-    """This function reads the .dat vectorized transforms it into numpy ndarrays.
-    input:
-    dataset_path: Path to the .dat vectorized dataset.
+    """
+    This function reads the .dat vectorized transforms it into numpy arrays.
 
-    output:
-    dataset: Numpy ndarray with shape (n_samples, n_features)
+    input:
+    - dataset_path: path to the .dat vectorized dataset.
+
+    outputs:
+    - x_train: np.ndarray containing the train set's samples and their features
+    - y_train: np.ndarray containing the train set's samples and their labels
+    - x_test: np.ndarray containing the test set's samples and their features
+    - y_test: np.ndarray containing the test set's samples and their labels
+    - x_challenge np.ndarray containing the challenge set's samples and their features
+    - y_challenge np.ndarray containing the challenge set's samples and their labels
+
     """
     x_train, y_train = thrember.read_vectorized_features(dataset_path, subset="train")
     x_test, y_test = thrember.read_vectorized_features(dataset_path, subset="test")
@@ -70,17 +86,24 @@ def feature_memorization(dataset_path: str, extracted_data_dir: str) -> None:
     print(f"Loading time: {(time.time() - t_loading):.1f} s")
 
 
-def feature_loading(data_file_folder: str, desired_datasets: list) -> np.ndarray:
-    """This function loads inside some variables the features extracted from the dataset that are
+def feature_loading(data_file_folder: str, desired_datasets: list):
+    """
+    This function loads inside some variables the features extracted from the dataset that are
     stored in memory under the data_file_folder path as .npy files.
 
     input:
-    data_file_folder: Path to the folder where the .npy files are located
-    desired_datasets: List of datasets to load
+    - data_file_folder: Path to the folder where the .npy files are located
+    - desired_datasets: List of datasets to load
 
-    output:
-    x_train, y_train, x_test, y_test, x_challenge, y_challenge: variables containing the extracted features"""
+    outputs:
+    - x_train: np.ndarray containing the train set's samples and their features
+    - y_train: np.ndarray containing the train set's samples and their labels
+    - x_test: np.ndarray containing the test set's samples and their features
+    - y_test: np.ndarray containing the test set's samples and their labels
+    - x_challenge: np.ndarray containing the challenge set's samples and their features
+    - y_challenge: np.ndarray containing the challenge set's samples and their labels
 
+    """
     print("\nLoading data...")
     x_train = np.ndarray(shape=(0, 0))
     y_train = np.ndarray(shape=(0, 0))
@@ -108,17 +131,20 @@ def feature_loading(data_file_folder: str, desired_datasets: list) -> np.ndarray
                 "NO CORRECT FILE HAS BEEN FOUND!"
         else:
             pass
+
     print(f"Loading time: {(time.time() - loading_time):.1f} s")
     print("Features loaded inside variables!")
     return x_train, y_train, x_test, y_test, x_challenge, y_challenge
 
 
 def feature_extraction(dataset_path: str) -> None:
-    """this function checks whether the dataset folder exists, and then calls the thrember
+    """
+    This function checks whether the dataset folder exists, and then calls the thrember
     create_vectorized_features function in order to extract features into vectorized features.
 
     input:
-    dataset_path: path to the dataset folder
+    - dataset_path: path to the dataset folder
+
     """
     if os.path.exists(dataset_path):
         thrember.create_vectorized_features(dataset_path, label_type="behavior")
@@ -129,5 +155,6 @@ def feature_extraction(dataset_path: str) -> None:
 if __name__ == "__main__":
     DATASET_DIR = "../Dataset"
     EXTRACTED_DATA_DIR = "../Extracted"
+
     download_dataset(DATASET_DIR)
     feature_memorization(DATASET_DIR, EXTRACTED_DATA_DIR)

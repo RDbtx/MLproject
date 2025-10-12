@@ -14,14 +14,16 @@ GRADBOSTING_RESULT_DIR = "../Results/gradboost/"
 # =====================================
 
 def to_class_indices(y: np.ndarray) -> np.ndarray:
-    """This utility function is used to convert sample,label np.ndarray
+    """
+    This utility function is used to convert sample,label np.ndarray
     into class indices for confusion matrix computation.
 
     inputs:
-    y: np.ndarray containing the samples and their labels
+    - y: np.ndarray containing the samples and their labels
 
     outputs:
-    y: contains the 1D class indices
+    - y: contains the 1D class indices
+
     """
     y = np.asarray(y)
     if y.ndim == 2 and y.shape[1] > 1:
@@ -31,17 +33,23 @@ def to_class_indices(y: np.ndarray) -> np.ndarray:
 
 def model_performances_report_generation(accuracy, precision, recall, f1_macro, f1_micro, hamm_loss, class_report,
                                          conf_matrix, scenario: str,
-                                         model_name: str):
-    """This function is used to generate the performance report.
+                                         model_name: str) -> None:
+    """
+    This function is used to generate the performances report and save it
+    in the /Results directory.
 
     inputs:
-    accuracy: Accuracy of the model
-    precision: Precision of the model
-    recall: Recall of the model
-    class_report: Class report of the model
-    conf_matrix: Confusion matrix of the model
-    scenario: Name of the scenario, it could be TRAINING or TESTING
-    output_dir: Path to the output directory
+    - accuracy: Accuracy of the model
+    - precision: Precision of the model
+    - recall: Recall of the model
+    - f1_macro: F1 macro score of the model
+    - f1_micro: F1 micro score of the model
+    - class_report: Class report of the model
+    - hamm_loss: Hamming loss of the model
+    - class_report: Class report of the model
+    - conf_matrix: Confusion matrix of the model
+    - scenario: Name of the scenario, it could be TRAINING or TESTING
+
     """
     if model_name == "KNN":
         report_dir = KNN_RESULT_DIR + f"reports/"
@@ -79,21 +87,28 @@ def model_performances_report_generation(accuracy, precision, recall, f1_macro, 
 
 def model_performances_multiclass(labels_names: list, y_true: np.ndarray, y_pred: np.ndarray, scenario: str,
                                   model_name: str):
-    """This function is used to compute the performances of our model. It computes
-       model accuracy, precision, recall, class report and confusion matrix for the given scenario
-       which could be TRAINING or TESTING.
+    """
+    This function is used to compute the performances of our model. It computes
+    model accuracy, precision, recall, etc... for the given scenario
+    which could be TRAINING or TESTING.
 
-       inputs:
-       y_true: np.ndarray containing the subset samples, and their true labels
-       y_pred: np.ndarray containing the subset samples, and their predicted labels
-       scenario: Name of the scenario, it could be TRAINING or TESTING
+    inputs:
+    - y_true: np.ndarray containing the subset samples, and their true labels
+    - y_pred: np.ndarray containing the subset samples, and their predicted labels
+    - scenario: Name of the scenario, it could be TRAINING or TESTING
+    - model_name: Name of the model
 
-       outputs:
-       accuracy: Accuracy of the model
-       precision: Precision of the model
-       recall: Recall of the model
-       class_report: Class report of the model
-       conf_matrix: Confusion matrix of the model
+    outputs:
+    - accuracy: Accuracy of the model
+    - precision: Precision of the model
+    - recall: Recall of the model
+    - f1_macro: F1 macro score of the model
+    - f1_micro: F1 micro score of the model
+    - class_report: Class report of the model
+    - hamm_loss: Hamming loss of the model
+    - class_report: Class report of the model
+    - conf_matrix: Confusion matrix of the model
+    - scenario: Name of the scenario, it could be TRAINING or TESTING
     """
     all_labels = np.arange(y_true.shape[1])
     samples = y_true.shape[0]

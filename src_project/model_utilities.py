@@ -3,14 +3,7 @@ from sklearn.multioutput import MultiOutputClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from performances import *
 import time
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-from setup_dataset import feature_loading
-from utils import subset_analysis, set_generation, shape_fixer
-from performances import *
-import time
 from sklearn.ensemble import RandomForestClassifier
-from setup_dataset import feature_loading
-from utils import subset_analysis, set_generation, shape_fixer
 import joblib
 
 
@@ -19,12 +12,13 @@ import joblib
 # =====================================
 
 def save_model(model: RandomForestClassifier, model_name: str) -> None:
-    """This function is used to save the trained model as a joblib file
+    """
+    This function is used to save the trained model as a joblib file
     inside the /Models directory
 
     inputs:
-    model: trained model
-    model_name: name of the model to be saved
+    - model: trained model
+    - model_name: name of the model to be saved
 
     """
     models_dir = "../Models/"
@@ -36,14 +30,15 @@ def model_train(model, labels_names: list, x: np.ndarray, y: np.ndarray):
     """This function is used to train the model evaluate the training performances.
 
     inputs:
-    model: the model to be trained
-    x: np.ndarray containing the training set with samples and features
-    y: np.ndarray containing the training set with samples and labels
-    results_dir: directory to save the training results
+    - model: the model to be trained
+    - labels_names: list of label names
+    - x: np.ndarray containing the training set with samples and features
+    - y: np.ndarray containing the training set with samples and labels
+    - results_dir: directory to save the training results
 
     outputs:
-    model: the trained model
-    train_predictions:  np.ndarray containing the predictions generated during training
+    - model: the trained model
+    - train_predictions:  np.ndarray containing the predictions generated during training
     """
 
     print("\n----MODEL TRAINING STARTED----")
@@ -88,17 +83,19 @@ def model_train(model, labels_names: list, x: np.ndarray, y: np.ndarray):
 
 
 def model_test(model, labels_names: list, x: np.ndarray, y: np.ndarray):
-    """This function is used to train the model evaluate the training performances.
+    """
+    This function is used to test the trained model over the given test set.
+    It also generates and saves a report of the obtained performances.
 
-        inputs:
-        model: the model to be trained
-        x: np.ndarray containing the training set with samples and features
-        y: np.ndarray containing the training set with samples and labels
-        results_dir: directory to save the testing results
+    inputs:
+    - model: the model to be trained
+    - labels_names: list of label names
+    - x: np.ndarray containing the test set with samples and features
+    - y: np.ndarray containing the test set with samples and labels
 
-        outputs:
-        test_predictions: np.ndarray containing the predictions generated during testing
-        """
+    outputs:
+    - test_predictions: np.ndarray containing the predictions generated during testing
+    """
     print("\n----MODEL TESTING----")
     print("Testing model...")
     test_time = time.time()
