@@ -44,6 +44,8 @@ knn = KNeighborsClassifier(
     n_jobs=-1
 )
 
+knn_multi = MultiOutputClassifier(knn, n_jobs=1)
+
 # =====================================
 # --- Main Execution ---
 # =====================================

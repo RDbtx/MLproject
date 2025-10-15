@@ -208,11 +208,11 @@ def subset_labeling(x_set: np.ndarray, y_set: np.ndarray, scenario: str):
     print(f"\nThe dataset has {num_labels} label columns.")
 
     if scenario == "TRAINING":
-        with open("../Dataset/Labels/train_result.json") as f:
+        with open("../Behavior Dataset/Labels/train_result.json") as f:
             label_map = json.load(f)
             f.close()
     elif scenario == "TESTING":
-        with open("../Dataset/Labels/test_result.json") as f:
+        with open("../Behavior Dataset/Labels/test_result.json") as f:
             label_map = json.load(f)
             f.close()
     else:

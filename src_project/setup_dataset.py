@@ -147,7 +147,12 @@ def feature_extraction(dataset_path: str) -> None:
 
     """
     if os.path.exists(dataset_path):
-        thrember.create_vectorized_features(dataset_path, label_type="behavior")
+        # uncomment this for the behavior dataset
+        # thrember.create_vectorized_features(dataset_path, label_type="behavior")
+
+        # this one is for benign / malicious classification
+        thrember.create_vectorized_features(dataset_path)
+
     else:
         print("Dataset folder does not exist")
 
@@ -156,5 +161,5 @@ if __name__ == "__main__":
     DATASET_DIR = "../Dataset"
     EXTRACTED_DATA_DIR = "../Extracted"
 
-    download_dataset(DATASET_DIR)
+    feature_extraction(DATASET_DIR)
     feature_memorization(DATASET_DIR, EXTRACTED_DATA_DIR)
