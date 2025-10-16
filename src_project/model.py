@@ -1,6 +1,6 @@
 import lightgbm as lgb
 from model_utilities import *
-from utils import set_generation, shape_fixer, subset_analysis
+from utils import set_generation, shape_fixer, subset_analysis, training_set_split
 from setup_dataset import feature_loading
 
 # =====================================
@@ -20,7 +20,7 @@ lghtbm = lgb.LGBMClassifier(
     random_state=42
 )
 
-multi_lghtbm = OneVsRestClassifier(lghtbm)
+lghtbm_multi = OneVsRestClassifier(lghtbm,n_jobs=1)
 
 rf = RandomForestClassifier(
     n_estimators=300,
@@ -44,7 +44,6 @@ knn = KNeighborsClassifier(
     n_jobs=-1
 )
 
-knn_multi = MultiOutputClassifier(knn, n_jobs=1)
 
 # =====================================
 # --- Main Execution ---
@@ -70,7 +69,7 @@ if __name__ == "__main__":
     test_labels, x_test, y_test = set_generation(x_test, y_test, len(x_test), "TESTING")
 
     # uncomment this section if you want your training and test set to be a split of the original training set
-    #  x_train, x_test, y_train, y_test, test_labels = training_set_split( x_train, y_train,train_labels, test_size=0.33)
+    # x_train, x_test, y_train, y_test, test_labels = training_set_split( x_train, y_train,train_labels, test_size=0.33)
 
     print("\n----DATASET ANALYSIS----")
     print("x_train shape: ", x_train.shape)
@@ -87,7 +86,7 @@ if __name__ == "__main__":
     subset_analysis(x_test, y_test, "TESTING", test_labels)
 
     # model training
-    trained_model, train_predictions = model_train(multi_lghtbm, train_labels, x_train, y_train)
+    trained_model, train_predictions = model_train(knn, train_labels, x_train, y_train)
     # save_model(trained_model, "KNN")
 
-    test_predictions = model_test(multi_lghtbm, test_labels, x_test, y_test)
+    test_predictions = model_test(trained_model, test_labels, x_test, y_test)
