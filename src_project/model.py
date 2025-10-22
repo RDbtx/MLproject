@@ -20,7 +20,7 @@ lghtbm = lgb.LGBMClassifier(
     random_state=42
 )
 
-lghtbm_multi = OneVsRestClassifier(lghtbm,n_jobs=1)
+lghtbm_multi = OneVsRestClassifier(lghtbm, n_jobs=1)
 
 rf = RandomForestClassifier(
     n_estimators=300,
@@ -43,7 +43,6 @@ knn = KNeighborsClassifier(
     metric='euclidean',
     n_jobs=-1
 )
-
 
 # =====================================
 # --- Main Execution ---
@@ -86,7 +85,7 @@ if __name__ == "__main__":
     subset_analysis(x_test, y_test, "TESTING", test_labels)
 
     # model training
-    trained_model, train_predictions = model_train(knn, train_labels, x_train, y_train)
-    # save_model(trained_model, "KNN")
+    trained_model, train_predictions = model_train(lghtbm_multi, train_labels, x_train, y_train)
+    # save_model(trained_model, "GRAD BOOST")
 
     test_predictions = model_test(trained_model, test_labels, x_test, y_test)
