@@ -1,4 +1,4 @@
-# EMBER 2024 MAMBA Multi-Output Malware Behavior Classification
+# EMBER 2024 MAMBA Multi-Output Malware Behavior Analyzer
 
 This project applies **machine learning techniques** to the **multi-output, multi-label classification** task presented
 by the **EMBER 2024 dataset (Behavior subset)**.  
