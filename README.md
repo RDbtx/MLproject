@@ -4,8 +4,7 @@ This project applies **machine learning techniques** to the **multi-output, mult
 by the **EMBER 2024 dataset (Behavior subset)**.  
 The goal is to identify and predict multiple behavioral traits of malware samples simultaneously using classical ML
 algorithms adapted for multi-output learning.  
-It was developed by **Alessio Murgioni** and **Riccardo Deidda** as the **final project for the Machine Learning course
-**.
+It was developed by **Alessio Murgioni** and **Riccardo Deidda** as the final project for the Machine Learning course.
 
 ## Overview
 
