@@ -1,17 +1,13 @@
 # EMBER 2024 MAMBA Multi-Output Malware Behavior Analyser
 
 This project applies **machine learning techniques** to the **multi-output, multi-label classification** task presented
-by the **EMBER 2024 dataset (Behavior subset)**.  
-The goal is to identify and predict multiple behavioral traits of malware samples simultaneously using classical ML
-algorithms adapted for multi-output learning.  
-It was developed by **Alessio Murgioni** and **Riccardo Deidda** as the **final project for the Machine Learning course
-**.
+by the **EMBER 2024 dataset (Behavior subset)**. The goal is to identify and predict multiple behavioral traits of malware samples simultaneously using classical ML
+algorithms adapted for multi-output learning. It was developed by **Alessio Murgioni** and **Riccardo Deidda** as the final project for the Machine Learning course.
 
 ## Overview
 
 The **EMBER 2024** dataset, originally created for malcious/benign classification, also provides behavioral features
-extracted from malware.  
-This project focuses exclusively on the **behavioral subset**, which encodes malware categories such as ransomwares,
+extracted from malware. This project focuses exclusively on the **behavioral subset**, which encodes malware categories such as ransomwares,
 backdoors, etc...
 
 Each sample may exhibit **multiple behaviors** at once — making this a **multi-output, multi-label classification**
