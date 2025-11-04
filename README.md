@@ -1,4 +1,4 @@
-# EMBER 2024 MOMBA Multi-Output Malware Behavior Analyser
+# EMBER 2024 M3BA Multi-Output Malware Behavior Analyser
 
 This project applies **machine learning techniques** to the **multi-output, multi-label classification** task presented
 by the **EMBER 2024 dataset (Behavior subset)**. The goal is to identify and predict multiple behavioral traits of malware samples simultaneously using classical ML
