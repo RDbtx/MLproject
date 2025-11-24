@@ -7,7 +7,7 @@ import time
 
 def file_mover(origin: str, destination: str) -> None:
     """
-    A utility function that iters to all the file contained into
+    A utility function that iters through all the file contained into
     the origin directory and moves them to the destination directory.
     This function was created to easily move files from one folder to another.
     Without any overhead of classic drag and drop.
